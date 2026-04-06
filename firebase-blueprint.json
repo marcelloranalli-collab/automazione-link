@@ -1,0 +1,25 @@
+{
+  "entities": {
+    "ScheduledLink": {
+      "title": "Scheduled Link",
+      "description": "A link scheduled to be opened at a specific time.",
+      "type": "object",
+      "properties": {
+        "url": { "type": "string", "format": "uri", "description": "The URL to open." },
+        "openTime": { "type": "string", "description": "The time to open the link (HH:mm)." },
+        "duration": { "type": "integer", "description": "How long to keep the link open (in minutes)." },
+        "isActive": { "type": "boolean", "description": "Whether the schedule is active." },
+        "repeatInterval": { "type": "integer", "description": "Repeat interval in minutes (0 for no repeat)." },
+        "userId": { "type": "string", "description": "The owner of the link." },
+        "lastOpened": { "type": "string", "format": "date-time", "description": "The last time this link was automatically opened." }
+      },
+      "required": ["url", "openTime", "duration", "isActive", "userId"]
+    }
+  },
+  "firestore": {
+    "/scheduled_links/{linkId}": {
+      "schema": "ScheduledLink",
+      "description": "User-defined scheduled links."
+    }
+  }
+}

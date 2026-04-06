@@ -1,0 +1,35 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isValidLink(data) {
+      return data.url is string && data.url.size() > 0 && data.url.size() < 2048 &&
+             data.openTime is string && data.openTime.matches('^([01]?[0-9]|2[0-3]):[0-5][0-9]$') &&
+             data.duration is int && data.duration > 0 && data.duration <= 1440 &&
+             data.repeatInterval is int && data.repeatInterval >= 0 &&
+             data.isActive is bool &&
+             data.userId is string && data.userId == request.auth.uid;
+    }
+
+    match /scheduled_links/{linkId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && isValidLink(request.resource.data);
+      allow update: if isAuthenticated() && isOwner(resource.data.userId) && isValidLink(request.resource.data);
+      allow delete: if isAuthenticated() && isOwner(resource.data.userId);
+    }
+
+    match /authorized_users/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && request.auth.token.email == 'marcello.ranalli@gmail.com';
+    }
+  }
+}
