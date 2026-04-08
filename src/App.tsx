@@ -66,8 +66,15 @@ export default function App() {
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
   const [links, setLinks] = useState<ScheduledLink[]>([]);
-  const [isSchedulerRunning, setIsSchedulerRunning] = useState(false);
+  const [isSchedulerRunning, setIsSchedulerRunning] = useState(() => {
+    const saved = localStorage.getItem('isSchedulerRunning');
+    return saved === 'true';
+  });
   const [activeWindows, setActiveWindows] = useState<ActiveWindow[]>([]);
+
+  useEffect(() => {
+    localStorage.setItem('isSchedulerRunning', String(isSchedulerRunning));
+  }, [isSchedulerRunning]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingLink, setEditingLink] = useState<ScheduledLink | null>(null);
   const [linkToDelete, setLinkToDelete] = useState<string | null>(null);
@@ -88,20 +95,17 @@ export default function App() {
     if (!link.isActive) return null;
 
     const now = new Date();
-    const [hours, minutes] = link.openTime.split(':').map(Number);
-    const todayOpenTime = set(now, { hours, minutes, seconds: 0, milliseconds: 0 });
     const lastOpenedDate = link.lastOpened?.toDate();
-    const isOpenedToday = lastOpenedDate && isSameDay(lastOpenedDate, now);
 
-    if (isOpenedToday) {
-      if (link.repeatInterval > 0) {
-        return addMinutes(lastOpenedDate, link.repeatInterval);
-      }
-      return addDays(todayOpenTime, 1);
+    if (lastOpenedDate && link.repeatInterval > 0) {
+      return addMinutes(lastOpenedDate, link.repeatInterval);
     }
 
-    if (now < todayOpenTime) {
-      return todayOpenTime;
+    const [hours, minutes] = link.openTime.split(':').map(Number);
+    const todayOpenTime = set(now, { hours, minutes, seconds: 0, milliseconds: 0 });
+    
+    if (lastOpenedDate && isSameDay(lastOpenedDate, now)) {
+      return addDays(todayOpenTime, 1);
     }
 
     return todayOpenTime;
@@ -219,19 +223,17 @@ export default function App() {
         const [hours, minutes] = link.openTime.split(':').map(Number);
         const todayOpenTime = set(now, { hours, minutes, seconds: 0, milliseconds: 0 });
         const lastOpenedDate = link.lastOpened?.toDate();
-        const isOpenedToday = lastOpenedDate && isSameDay(lastOpenedDate, now);
 
         let shouldOpen = false;
 
-        if (isOpenedToday) {
-          if (link.repeatInterval > 0) {
-            const nextOpenTime = addMinutes(lastOpenedDate, link.repeatInterval);
-            if (now >= nextOpenTime) {
-              shouldOpen = true;
-            }
+        if (lastOpenedDate && link.repeatInterval > 0) {
+          const nextOpenTime = addMinutes(lastOpenedDate, link.repeatInterval);
+          if (now >= nextOpenTime) {
+            shouldOpen = true;
           }
         } else {
-          if (now >= todayOpenTime) {
+          const isOpenedToday = lastOpenedDate && isSameDay(lastOpenedDate, now);
+          if (!isOpenedToday && now >= todayOpenTime) {
             shouldOpen = true;
           }
         }
