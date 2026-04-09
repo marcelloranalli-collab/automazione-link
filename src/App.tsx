@@ -43,6 +43,8 @@ interface ScheduledLink {
   id: string;
   url: string;
   openTime: string; // HH:mm
+  endTime?: string; // HH:mm
+  endDate?: string; // YYYY-MM-DD
   duration: number; // minutes
   repeatInterval: number; // minutes (0 for no repeat)
   isActive: boolean;
@@ -84,6 +86,8 @@ export default function App() {
   const [newLink, setNewLink] = useState({
     url: '',
     openTime: '09:00',
+    endTime: '',
+    endDate: '',
     duration: 1,
     repeatInterval: 0,
     isActive: true
@@ -95,20 +99,52 @@ export default function App() {
     if (!link.isActive) return null;
 
     const now = new Date();
-    const lastOpenedDate = link.lastOpened?.toDate();
-
-    if (lastOpenedDate && link.repeatInterval > 0) {
-      return addMinutes(lastOpenedDate, link.repeatInterval);
-    }
-
     const [hours, minutes] = link.openTime.split(':').map(Number);
     const todayOpenTime = set(now, { hours, minutes, seconds: 0, milliseconds: 0 });
     
-    if (lastOpenedDate && isSameDay(lastOpenedDate, now)) {
-      return addDays(todayOpenTime, 1);
+    let todayEndTime = set(now, { hours: 23, minutes: 59, seconds: 59, milliseconds: 999 });
+    if (link.endTime) {
+      const [endHours, endMinutes] = link.endTime.split(':').map(Number);
+      todayEndTime = set(now, { hours: endHours, minutes: endMinutes, seconds: 0, milliseconds: 0 });
     }
 
-    return todayOpenTime;
+    if (link.endDate) {
+      const endD = new Date(link.endDate);
+      const endOfDay = set(endD, { hours: 23, minutes: 59, seconds: 59 });
+      if (now > endOfDay) return null; // Expired
+    }
+
+    const lastOpenedDate = link.lastOpened?.toDate();
+    const isOpenedToday = lastOpenedDate && isSameDay(lastOpenedDate, now);
+
+    if (isOpenedToday) {
+      if (link.repeatInterval > 0) {
+        const nextTime = addMinutes(lastOpenedDate, link.repeatInterval);
+        if (nextTime <= todayEndTime) {
+          return nextTime;
+        }
+      }
+      // If no repeat or next time is after end time, next activity is tomorrow's open time
+      const tomorrowOpenTime = addDays(todayOpenTime, 1);
+      if (link.endDate && tomorrowOpenTime > set(new Date(link.endDate), { hours: 23, minutes: 59, seconds: 59 })) {
+        return null;
+      }
+      return tomorrowOpenTime;
+    }
+
+    if (now < todayOpenTime) {
+      return todayOpenTime;
+    }
+
+    if (now <= todayEndTime) {
+      return now; // Should open right now
+    }
+
+    const tomorrowOpenTime = addDays(todayOpenTime, 1);
+    if (link.endDate && tomorrowOpenTime > set(new Date(link.endDate), { hours: 23, minutes: 59, seconds: 59 })) {
+      return null;
+    }
+    return tomorrowOpenTime;
   };
 
   // Auth Listener
@@ -220,21 +256,44 @@ export default function App() {
       links.forEach(async (link) => {
         if (!link.isActive) return;
 
+        const now = new Date();
+        
+        // Check end date
+        if (link.endDate) {
+          const endD = new Date(link.endDate);
+          const endOfDay = set(endD, { hours: 23, minutes: 59, seconds: 59, milliseconds: 999 });
+          if (now > endOfDay) {
+            // Auto-disable expired links
+            toggleLinkStatus(link.id, true);
+            return;
+          }
+        }
+
         const [hours, minutes] = link.openTime.split(':').map(Number);
         const todayOpenTime = set(now, { hours, minutes, seconds: 0, milliseconds: 0 });
+        
+        let todayEndTime = set(now, { hours: 23, minutes: 59, seconds: 59, milliseconds: 999 });
+        if (link.endTime) {
+          const [endHours, endMinutes] = link.endTime.split(':').map(Number);
+          todayEndTime = set(now, { hours: endHours, minutes: endMinutes, seconds: 0, milliseconds: 0 });
+        }
+
         const lastOpenedDate = link.lastOpened?.toDate();
+        const isOpenedToday = lastOpenedDate && isSameDay(lastOpenedDate, now);
 
         let shouldOpen = false;
 
-        if (lastOpenedDate && link.repeatInterval > 0) {
-          const nextOpenTime = addMinutes(lastOpenedDate, link.repeatInterval);
-          if (now >= nextOpenTime) {
+        // Only operate within the daily window
+        if (now >= todayOpenTime && now <= todayEndTime) {
+          if (!isOpenedToday) {
+            // First time today
             shouldOpen = true;
-          }
-        } else {
-          const isOpenedToday = lastOpenedDate && isSameDay(lastOpenedDate, now);
-          if (!isOpenedToday && now >= todayOpenTime) {
-            shouldOpen = true;
+          } else if (link.repeatInterval > 0) {
+            // Already opened today, check repeat interval
+            const nextOpenTime = addMinutes(lastOpenedDate, link.repeatInterval);
+            if (now >= nextOpenTime) {
+              shouldOpen = true;
+            }
           }
         }
 
@@ -300,6 +359,8 @@ export default function App() {
         await updateDoc(doc(db, 'scheduled_links', editingLink.id), {
           url: newLink.url,
           openTime: newLink.openTime,
+          endTime: newLink.endTime,
+          endDate: newLink.endDate,
           duration: newLink.duration,
           repeatInterval: newLink.repeatInterval,
           isActive: newLink.isActive
@@ -323,6 +384,8 @@ export default function App() {
     setNewLink({
       url: link.url || '',
       openTime: link.openTime || '09:00',
+      endTime: link.endTime || '',
+      endDate: link.endDate || '',
       duration: link.duration ?? 1,
       repeatInterval: link.repeatInterval ?? 0,
       isActive: link.isActive ?? true
@@ -333,7 +396,7 @@ export default function App() {
   const closeModal = () => {
     setShowAddModal(false);
     setEditingLink(null);
-    setNewLink({ url: '', openTime: '09:00', duration: 1, repeatInterval: 0, isActive: true });
+    setNewLink({ url: '', openTime: '09:00', endTime: '', endDate: '', duration: 1, repeatInterval: 0, isActive: true });
   };
 
   const toggleLinkStatus = async (id: string, currentStatus: boolean) => {
@@ -648,6 +711,16 @@ export default function App() {
                             Ogni {link.repeatInterval} min
                           </span>
                         )}
+                        {link.endTime && (
+                          <span className="flex items-center gap-1 text-xs text-slate-400">
+                            Fino alle {link.endTime}
+                          </span>
+                        )}
+                        {link.endDate && (
+                          <span className="flex items-center gap-1 text-xs text-red-400">
+                            Scade il {format(new Date(link.endDate), 'dd/MM/yyyy')}
+                          </span>
+                        )}
                         {link.lastOpened && (
                           <span className="text-[10px] text-slate-500 font-medium uppercase">
                             Ultima: {format(link.lastOpened.toDate(), 'dd/MM HH:mm')}
@@ -827,6 +900,32 @@ export default function App() {
                       />
                     </div>
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-400 mb-2">Orario Fine (Opzionale)</label>
+                    <div className="relative">
+                      <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+                      <input
+                        type="time"
+                        value={newLink.endTime || ''}
+                        onChange={e => setNewLink({...newLink, endTime: e.target.value})}
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-12 pr-4 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-2">Data Scadenza (Opzionale)</label>
+                  <input
+                    type="date"
+                    value={newLink.endDate || ''}
+                    onChange={e => setNewLink({...newLink, endDate: e.target.value})}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-slate-200"
+                  />
+                  <p className="text-xs text-slate-500 mt-2">Se impostata, l'automazione per questo link verrà disattivata dopo questa data.</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-400 mb-2">Durata Apertura (min)</label>
                     <div className="relative">
