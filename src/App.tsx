@@ -242,11 +242,11 @@ export default function App() {
           // Tempo scaduto, chiudiamo la finestra
           try {
             aw.windowRef.close();
-            changed = true;
           } catch (e) {
             console.error('Failed to close window:', e);
-            remainingWindows.push(aw);
           }
+          // Rimuoviamo sempre la finestra dalla lista, anche se la chiusura fallisce
+          changed = true;
         } else {
           // Finestra ancora attiva
           remainingWindows.push(aw);
