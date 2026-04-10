@@ -102,8 +102,9 @@ export default function App() {
     const [hours, minutes] = link.openTime.split(':').map(Number);
     const todayOpenTime = set(now, { hours, minutes, seconds: 0, milliseconds: 0 });
     
+    const hasEndTime = !!link.endTime;
     let todayEndTime = set(now, { hours: 23, minutes: 59, seconds: 59, milliseconds: 999 });
-    if (link.endTime) {
+    if (hasEndTime) {
       const [endHours, endMinutes] = link.endTime.split(':').map(Number);
       todayEndTime = set(now, { hours: endHours, minutes: endMinutes, seconds: 0, milliseconds: 0 });
     }
@@ -115,36 +116,52 @@ export default function App() {
     }
 
     const lastOpenedDate = link.lastOpened?.toDate();
-    const isOpenedToday = lastOpenedDate && isSameDay(lastOpenedDate, now);
 
-    if (isOpenedToday) {
-      if (link.repeatInterval > 0) {
-        const nextTime = addMinutes(lastOpenedDate, link.repeatInterval);
-        if (nextTime <= todayEndTime) {
-          return nextTime;
-        }
-      }
-      // If no repeat or next time is after end time, next activity is tomorrow's open time
+    if (!lastOpenedDate) {
+      if (now < todayOpenTime) return todayOpenTime;
+      if (!hasEndTime || now <= todayEndTime) return now; // Should open right now
+      // Past today's end time
       const tomorrowOpenTime = addDays(todayOpenTime, 1);
-      if (link.endDate && tomorrowOpenTime > set(new Date(link.endDate), { hours: 23, minutes: 59, seconds: 59 })) {
-        return null;
-      }
+      if (link.endDate && tomorrowOpenTime > set(new Date(link.endDate), { hours: 23, minutes: 59, seconds: 59 })) return null;
       return tomorrowOpenTime;
     }
 
-    if (now < todayOpenTime) {
-      return todayOpenTime;
+    if (link.repeatInterval > 0) {
+      const nextTime = addMinutes(lastOpenedDate, link.repeatInterval);
+      
+      if (hasEndTime) {
+        const isOpenedToday = isSameDay(lastOpenedDate, now);
+        if (!isOpenedToday) {
+          // New day, start at openTime
+          if (now < todayOpenTime) return todayOpenTime;
+          if (now <= todayEndTime) return now;
+          const tomorrowOpenTime = addDays(todayOpenTime, 1);
+          if (link.endDate && tomorrowOpenTime > set(new Date(link.endDate), { hours: 23, minutes: 59, seconds: 59 })) return null;
+          return tomorrowOpenTime;
+        } else {
+          if (nextTime <= todayEndTime) {
+            return nextTime > now ? nextTime : now;
+          } else {
+            const tomorrowOpenTime = addDays(todayOpenTime, 1);
+            if (link.endDate && tomorrowOpenTime > set(new Date(link.endDate), { hours: 23, minutes: 59, seconds: 59 })) return null;
+            return tomorrowOpenTime;
+          }
+        }
+      } else {
+        // Continuous 24/7 mode
+        return nextTime > now ? nextTime : now;
+      }
+    } else {
+      // No repeat, just once a day
+      const isOpenedToday = isSameDay(lastOpenedDate, now);
+      if (!isOpenedToday) {
+        if (now < todayOpenTime) return todayOpenTime;
+        if (!hasEndTime || now <= todayEndTime) return now;
+      }
+      const tomorrowOpenTime = addDays(todayOpenTime, 1);
+      if (link.endDate && tomorrowOpenTime > set(new Date(link.endDate), { hours: 23, minutes: 59, seconds: 59 })) return null;
+      return tomorrowOpenTime;
     }
-
-    if (now <= todayEndTime) {
-      return now; // Should open right now
-    }
-
-    const tomorrowOpenTime = addDays(todayOpenTime, 1);
-    if (link.endDate && tomorrowOpenTime > set(new Date(link.endDate), { hours: 23, minutes: 59, seconds: 59 })) {
-      return null;
-    }
-    return tomorrowOpenTime;
   };
 
   // Auth Listener
@@ -272,26 +289,43 @@ export default function App() {
         const [hours, minutes] = link.openTime.split(':').map(Number);
         const todayOpenTime = set(now, { hours, minutes, seconds: 0, milliseconds: 0 });
         
+        const hasEndTime = !!link.endTime;
         let todayEndTime = set(now, { hours: 23, minutes: 59, seconds: 59, milliseconds: 999 });
-        if (link.endTime) {
+        if (hasEndTime) {
           const [endHours, endMinutes] = link.endTime.split(':').map(Number);
           todayEndTime = set(now, { hours: endHours, minutes: endMinutes, seconds: 0, milliseconds: 0 });
         }
 
         const lastOpenedDate = link.lastOpened?.toDate();
-        const isOpenedToday = lastOpenedDate && isSameDay(lastOpenedDate, now);
-
         let shouldOpen = false;
 
-        // Only operate within the daily window
-        if (now >= todayOpenTime && now <= todayEndTime) {
-          if (!isOpenedToday) {
-            // First time today
+        if (!lastOpenedDate) {
+          if (now >= todayOpenTime && (!hasEndTime || now <= todayEndTime)) {
             shouldOpen = true;
-          } else if (link.repeatInterval > 0) {
-            // Already opened today, check repeat interval
+          }
+        } else {
+          if (link.repeatInterval > 0) {
             const nextOpenTime = addMinutes(lastOpenedDate, link.repeatInterval);
-            if (now >= nextOpenTime) {
+            if (hasEndTime) {
+              const isOpenedToday = isSameDay(lastOpenedDate, now);
+              if (!isOpenedToday) {
+                if (now >= todayOpenTime && now <= todayEndTime) {
+                  shouldOpen = true;
+                }
+              } else {
+                if (now >= nextOpenTime && now <= todayEndTime) {
+                  shouldOpen = true;
+                }
+              }
+            } else {
+              // Continuous mode
+              if (now >= nextOpenTime) {
+                shouldOpen = true;
+              }
+            }
+          } else {
+            const isOpenedToday = isSameDay(lastOpenedDate, now);
+            if (!isOpenedToday && now >= todayOpenTime && (!hasEndTime || now <= todayEndTime)) {
               shouldOpen = true;
             }
           }
