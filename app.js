@@ -1,5 +1,58 @@
+// Inserisci qui l'URL dello script di Google Apps Script generato
+const GOOGLE_SCRIPT_URL = 'INSERISCI_QUI_IL_TUO_URL_SCRIPT';
+
 let currentResult = null;
 let currentType = null;
+
+async function accediAllApp(event) {
+    event.preventDefault();
+
+    const nome = document.getElementById('user-nome').value;
+    const email = document.getElementById('user-email').value;
+    const cellulare = document.getElementById('user-cellulare').value;
+    const btnAccedi = document.getElementById('btn-accedi');
+    const statusMsg = document.getElementById('login-status');
+
+    if (!nome || !email || !cellulare) {
+        alert('Compila tutti i campi per accedere.');
+        return;
+    }
+
+    // Cambia stato del bottone
+    btnAccedi.disabled = true;
+    btnAccedi.innerText = "Salvataggio in corso...";
+    statusMsg.style.display = "block";
+    statusMsg.innerText = "Attendere prego...";
+
+    try {
+        // Prepariamo i dati per Google Sheets
+        // Usiamo un URLSearchParams per inviare una richiesta POST come modulo
+        const formData = new URLSearchParams();
+        formData.append('nome', nome);
+        formData.append('email', email);
+        formData.append('cellulare', cellulare);
+
+        if(GOOGLE_SCRIPT_URL !== 'INSERISCI_QUI_IL_TUO_URL_SCRIPT') {
+            await fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                body: formData,
+            });
+        } else {
+             console.log("Nota: URL Google Script non configurato. I dati non sono stati inviati, ma ti faccio accedere ugualmente per test.");
+        }
+
+        // Accesso consentito, nascondi il form e mostra l'app
+        document.getElementById('login-container').style.display = 'none';
+        document.getElementById('app-container').style.display = 'block';
+
+    } catch (error) {
+        console.error('Errore di connessione:', error);
+        alert("Si è verificato un errore durante l'accesso. Riprova.");
+        btnAccedi.disabled = false;
+        btnAccedi.innerText = "Accedi all'App";
+        statusMsg.style.display = "none";
+    }
+}
 
 function openTab(evt, tabName) {
     // Hide all tab contents
