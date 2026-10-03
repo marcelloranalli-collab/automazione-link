@@ -19,7 +19,7 @@
             <p>Inserisci i tuoi dati per accedere al calcolatore</p>
         </header>
 
-        <form id="form-accesso" onsubmit="accediAllApp(event)">
+        <form id="form-accesso" onsubmit="richiediCodice(event)">
             <div class="form-group">
                 <label for="user-nome">Nome e Cognome:</label>
                 <input type="text" id="user-nome" required placeholder="Es. Mario Rossi">
@@ -28,12 +28,18 @@
                 <label for="user-email">Email:</label>
                 <input type="email" id="user-email" required placeholder="Es. mario@email.it">
             </div>
-            <div class="form-group">
-                <label for="user-cellulare">Cellulare:</label>
-                <input type="tel" id="user-cellulare" required placeholder="Es. 333 1234567">
-            </div>
-            <button type="submit" class="btn calc-btn" id="btn-accedi">Accedi all'App</button>
+            <button type="submit" class="btn calc-btn" id="btn-richiedi">Richiedi Codice</button>
             <p id="login-status" style="display: none; text-align: center; color: var(--primary-color); margin-top: 10px;"></p>
+        </form>
+
+        <form id="form-verifica" onsubmit="verificaCodice(event)" style="display: none;">
+            <p style="text-align: center; font-size: 0.9rem; margin-bottom: 15px;">Abbiamo inviato un codice a 6 cifre alla tua email. Inseriscilo qui sotto per continuare.</p>
+            <div class="form-group">
+                <label for="user-codice">Codice di Verifica:</label>
+                <input type="text" id="user-codice" required placeholder="Es. 123456" maxlength="6" pattern="\d{6}">
+            </div>
+            <button type="submit" class="btn calc-btn" id="btn-verifica">Verifica e Accedi</button>
+            <p id="verifica-status" style="display: none; text-align: center; color: var(--primary-color); margin-top: 10px;"></p>
         </form>
     </div>
 

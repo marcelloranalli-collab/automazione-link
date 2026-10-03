@@ -4,41 +4,101 @@ const GOOGLE_SCRIPT_URL = 'INSERISCI_QUI_IL_TUO_URL_SCRIPT';
 let currentResult = null;
 let currentType = null;
 
-async function accediAllApp(event) {
+// Memorizza nome ed email temporaneamente per la verifica
+let pendingNome = '';
+let pendingEmail = '';
+
+async function richiediCodice(event) {
     event.preventDefault();
 
-    const nome = document.getElementById('user-nome').value;
-    const email = document.getElementById('user-email').value;
-    const cellulare = document.getElementById('user-cellulare').value;
-    const btnAccedi = document.getElementById('btn-accedi');
+    pendingNome = document.getElementById('user-nome').value;
+    pendingEmail = document.getElementById('user-email').value;
+    const btnRichiedi = document.getElementById('btn-richiedi');
     const statusMsg = document.getElementById('login-status');
 
-    if (!nome || !email || !cellulare) {
-        alert('Compila tutti i campi per accedere.');
+    if (!pendingNome || !pendingEmail) {
+        alert('Compila tutti i campi per procedere.');
         return;
     }
 
     // Cambia stato del bottone
-    btnAccedi.disabled = true;
-    btnAccedi.innerText = "Salvataggio in corso...";
+    btnRichiedi.disabled = true;
+    btnRichiedi.innerText = "Invio in corso...";
+    statusMsg.style.display = "block";
+    statusMsg.innerText = "Richiesta codice in corso...";
+
+    try {
+        const formData = new URLSearchParams();
+        formData.append('action', 'send_code');
+        formData.append('nome', pendingNome);
+        formData.append('email', pendingEmail);
+
+        if(GOOGLE_SCRIPT_URL !== 'INSERISCI_QUI_IL_TUO_URL_SCRIPT') {
+            const response = await fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                body: formData,
+            });
+            const result = await response.json();
+            if (result.status !== 'success') {
+                throw new Error(result.message || "Errore sconosciuto");
+            }
+        } else {
+             console.log("Nota: URL Google Script non configurato. Salto l'invio reale dell'email. Usa '123456' per testare.");
+        }
+
+        // Passa alla schermata di verifica
+        document.getElementById('form-accesso').style.display = 'none';
+        document.getElementById('form-verifica').style.display = 'block';
+
+    } catch (error) {
+        console.error('Errore:', error);
+        alert("Si è verificato un errore durante l'invio del codice. Riprova.");
+        btnRichiedi.disabled = false;
+        btnRichiedi.innerText = "Richiedi Codice";
+        statusMsg.style.display = "none";
+    }
+}
+
+async function verificaCodice(event) {
+    event.preventDefault();
+
+    const codice = document.getElementById('user-codice').value;
+    const btnVerifica = document.getElementById('btn-verifica');
+    const statusMsg = document.getElementById('verifica-status');
+
+    if (!codice) {
+        alert('Inserisci il codice di verifica.');
+        return;
+    }
+
+    // Cambia stato del bottone
+    btnVerifica.disabled = true;
+    btnVerifica.innerText = "Verifica in corso...";
     statusMsg.style.display = "block";
     statusMsg.innerText = "Attendere prego...";
 
     try {
-        // Prepariamo i dati per Google Sheets
-        // Usiamo un URLSearchParams per inviare una richiesta POST come modulo
         const formData = new URLSearchParams();
-        formData.append('nome', nome);
-        formData.append('email', email);
-        formData.append('cellulare', cellulare);
+        formData.append('action', 'verify_code');
+        formData.append('email', pendingEmail);
+        formData.append('nome', pendingNome);
+        formData.append('code', codice);
 
         if(GOOGLE_SCRIPT_URL !== 'INSERISCI_QUI_IL_TUO_URL_SCRIPT') {
-            await fetch(GOOGLE_SCRIPT_URL, {
+            const response = await fetch(GOOGLE_SCRIPT_URL, {
                 method: 'POST',
                 body: formData,
             });
+            const result = await response.json();
+
+            if (result.status !== 'success') {
+                throw new Error(result.message || "Codice errato");
+            }
         } else {
-             console.log("Nota: URL Google Script non configurato. I dati non sono stati inviati, ma ti faccio accedere ugualmente per test.");
+             if (codice !== '123456') {
+                 throw new Error("Codice di test errato (usa 123456)");
+             }
+             console.log("Nota: Accesso simulato con successo.");
         }
 
         // Accesso consentito, nascondi il form e mostra l'app
@@ -46,10 +106,10 @@ async function accediAllApp(event) {
         document.getElementById('app-container').style.display = 'block';
 
     } catch (error) {
-        console.error('Errore di connessione:', error);
-        alert("Si è verificato un errore durante l'accesso. Riprova.");
-        btnAccedi.disabled = false;
-        btnAccedi.innerText = "Accedi all'App";
+        console.error('Errore di verifica:', error);
+        alert(error.message || "Codice errato o scaduto. Riprova.");
+        btnVerifica.disabled = false;
+        btnVerifica.innerText = "Verifica e Accedi";
         statusMsg.style.display = "none";
     }
 }
