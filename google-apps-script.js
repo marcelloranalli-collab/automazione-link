@@ -24,7 +24,13 @@ function handleRequest(e) {
       var subject = "Il tuo codice di accesso per il Calcolatore";
       var body = "Ciao " + nome + ",\n\nIl tuo codice di verifica per accedere all'app è: " + code + "\n\nQuesto codice scadrà in 10 minuti.";
 
-      MailApp.sendEmail(email, subject, body);
+      MailApp.sendEmail({
+        to: email,
+        subject: subject,
+        body: body,
+        name: "Finsubito.org",
+        replyTo: "noreply@finsubito.org"
+      });
 
       return createResponse(e, { "status": "success", "message": "Codice inviato" });
 
