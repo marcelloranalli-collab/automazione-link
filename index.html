@@ -1,13 +1,89 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Google AI Studio App</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calcolatore Mutuo e Leasing</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Include jsPDF and autoTable for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+    <div class="background-animation"></div>
 
+    <div class="container">
+        <header>
+            <h1>Calcolatore Rata</h1>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="openTab(event, 'mutuo')">Mutuo</button>
+            <button class="tab-btn" onclick="openTab(event, 'leasing')">Leasing</button>
+        </div>
+
+        <div id="mutuo" class="tab-content active">
+            <h2>Calcolo Rata Mutuo</h2>
+            <form id="form-mutuo">
+                <div class="form-group">
+                    <label for="importo-mutuo">Importo Mutuo (€):</label>
+                    <input type="number" id="importo-mutuo" required min="1">
+                </div>
+                <div class="form-group">
+                    <label for="tasso-mutuo">Tasso di Interesse Annuo (%):</label>
+                    <input type="number" id="tasso-mutuo" step="0.01" required min="0">
+                </div>
+                <div class="form-group">
+                    <label for="durata-mutuo">Durata (Anni):</label>
+                    <input type="number" id="durata-mutuo" required min="1">
+                </div>
+                <button type="button" class="btn calc-btn" onclick="calcolaMutuo()">Calcola Mutuo</button>
+            </form>
+        </div>
+
+        <div id="leasing" class="tab-content">
+            <h2>Calcolo Rata Leasing</h2>
+            <form id="form-leasing">
+                <div class="form-group">
+                    <label for="valore-bene">Valore del Bene (€):</label>
+                    <input type="number" id="valore-bene" required min="1">
+                </div>
+                <div class="form-group">
+                    <label for="anticipo-leasing">Anticipo (€):</label>
+                    <input type="number" id="anticipo-leasing" required min="0">
+                </div>
+                <div class="form-group">
+                    <label for="riscatto-leasing">Valore di Riscatto (€):</label>
+                    <input type="number" id="riscatto-leasing" required min="0">
+                </div>
+                <div class="form-group">
+                    <label for="tasso-leasing">Tasso di Interesse Annuo (%):</label>
+                    <input type="number" id="tasso-leasing" step="0.01" required min="0">
+                </div>
+                <div class="form-group">
+                    <label for="durata-leasing">Durata (Mesi):</label>
+                    <input type="number" id="durata-leasing" required min="1">
+                </div>
+                <button type="button" class="btn calc-btn" onclick="calcolaLeasing()">Calcola Leasing</button>
+            </form>
+        </div>
+
+        <div id="risultato" class="result-section" style="display: none;">
+            <h3>Risultato</h3>
+            <p id="risultato-testo"></p>
+            <button id="btn-pdf" class="btn pdf-btn" onclick="generaPDF()">Scarica/Condividi PDF</button>
+        </div>
+
+        <div class="advertisement">
+            <div class="ad-content">
+                <p>Hai bisogno di un finanziamento?</p>
+                <a href="https://finsubito.org" target="_blank" class="ad-link">#finsubito.org</a>
+                <p class="ad-info">Per richiedere informazioni, compila il form su:</p>
+                <a href="https://info.finsubito.org" target="_blank" class="ad-link-secondary">info.finsubito.org</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
