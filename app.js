@@ -44,12 +44,33 @@ function calcolaMutuo() {
         rata = importo * (tassoMensile * Math.pow(1 + tassoMensile, mesi)) / (Math.pow(1 + tassoMensile, mesi) - 1);
     }
 
+    // Calcolo piano di ammortamento (francese)
+    let pianoAmmortamento = [];
+    let debitoResiduo = importo;
+    for (let i = 1; i <= mesi; i++) {
+        let quotaInteressi = debitoResiduo * tassoMensile;
+        let quotaCapitale = rata - quotaInteressi;
+        debitoResiduo -= quotaCapitale;
+
+        // Evitare piccoli numeri negativi dovuti ad arrotondamenti
+        if (debitoResiduo < 0) debitoResiduo = 0;
+
+        pianoAmmortamento.push({
+            mese: i,
+            rata: rata,
+            quotaCapitale: quotaCapitale,
+            quotaInteressi: quotaInteressi,
+            debitoResiduo: debitoResiduo
+        });
+    }
+
     currentType = 'Mutuo';
     currentResult = {
         importo: importo,
         tassoAnnuo: tassoAnnuo,
         durata: anni + " anni",
-        rata: rata
+        rata: rata,
+        pianoAmmortamento: pianoAmmortamento
     };
 
     mostraRisultato(`Rata Mensile Mutuo: €${rata.toFixed(2)}`);
@@ -85,6 +106,31 @@ function calcolaLeasing() {
         rata = (importoFinanziato - pvRiscatto) * (tassoMensile * Math.pow(1 + tassoMensile, mesi)) / (Math.pow(1 + tassoMensile, mesi) - 1);
     }
 
+    // Calcolo piano di ammortamento
+    let pianoAmmortamento = [];
+    let debitoResiduo = importoFinanziato;
+
+    for (let i = 1; i <= mesi; i++) {
+        let quotaInteressi = debitoResiduo * tassoMensile;
+        let quotaCapitale = rata - quotaInteressi;
+        debitoResiduo -= quotaCapitale;
+
+        // Se è l'ultimo mese, il debito residuo teorico dovrebbe corrispondere al valore di riscatto
+        if (i === mesi && Math.abs(debitoResiduo - riscatto) < 0.01) {
+            debitoResiduo = riscatto;
+        } else if (debitoResiduo < 0) {
+            debitoResiduo = 0;
+        }
+
+        pianoAmmortamento.push({
+            mese: i,
+            rata: rata,
+            quotaCapitale: quotaCapitale,
+            quotaInteressi: quotaInteressi,
+            debitoResiduo: debitoResiduo
+        });
+    }
+
     currentType = 'Leasing';
     currentResult = {
         valoreBene: valoreBene,
@@ -92,7 +138,8 @@ function calcolaLeasing() {
         riscatto: riscatto,
         tassoAnnuo: tassoAnnuo,
         durata: mesi + " mesi",
-        rata: rata
+        rata: rata,
+        pianoAmmortamento: pianoAmmortamento
     };
 
     mostraRisultato(`Rata Mensile Leasing: €${rata.toFixed(2)}`);
@@ -103,12 +150,7 @@ function mostraRisultato(testo) {
     document.getElementById("risultato").style.display = "block";
 }
 
-function generaPDF() {
-    if (!currentResult) {
-        alert("Calcola prima una rata per generare il PDF.");
-        return;
-    }
-
+function generaOggettoPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
@@ -150,25 +192,101 @@ function generaPDF() {
         styles: { fontSize: 12, cellPadding: 5 }
     });
 
-    const finalY = doc.lastAutoTable.finalY || 40;
+    let finalY = doc.lastAutoTable.finalY || 40;
+
+    const includiAmmortamento = document.getElementById("includi-ammortamento").checked;
+
+    if (includiAmmortamento && currentResult.pianoAmmortamento) {
+        let ammortamentoBody = currentResult.pianoAmmortamento.map(riga => [
+            riga.mese,
+            `€ ${riga.rata.toFixed(2)}`,
+            `€ ${riga.quotaCapitale.toFixed(2)}`,
+            `€ ${riga.quotaInteressi.toFixed(2)}`,
+            `€ ${riga.debitoResiduo.toFixed(2)}`
+        ]);
+
+        doc.addPage();
+        doc.setFontSize(18);
+        doc.setTextColor(40, 40, 40);
+        doc.text("Piano di Ammortamento", 105, 20, null, null, "center");
+
+        doc.autoTable({
+            startY: 30,
+            head: [['Mese', 'Rata', 'Q. Capitale', 'Q. Interessi', 'Debito Residuo']],
+            body: ammortamentoBody,
+            theme: 'striped',
+            headStyles: { fillColor: [33, 150, 243] },
+            styles: { fontSize: 10, cellPadding: 3 }
+        });
+
+        finalY = doc.lastAutoTable.finalY || 30;
+    }
+
+    // Aggiungi spazio prima della pubblicità
+    let adStartY = finalY + 20;
+    if (adStartY > doc.internal.pageSize.getHeight() - 50) {
+        doc.addPage();
+        adStartY = 20;
+    }
 
     // Advertisement section in PDF
     doc.setFontSize(14);
     doc.setTextColor(211, 47, 47); // Red color for ad
-    doc.text("Hai bisogno di un finanziamento?", 105, finalY + 20, null, null, "center");
+    doc.text("Hai bisogno di un finanziamento?", 105, adStartY, null, null, "center");
 
     doc.setFontSize(16);
     doc.setFont("helvetica", "bold");
-    doc.text("#finsubito.org", 105, finalY + 30, null, null, "center");
+    doc.text("#finsubito.org", 105, adStartY + 10, null, null, "center");
 
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(80, 80, 80);
-    doc.text("Per richiedere informazioni, compila il form su:", 105, finalY + 45, null, null, "center");
+    doc.text("Per richiedere informazioni, compila il form su:", 105, adStartY + 25, null, null, "center");
 
     doc.setTextColor(25, 118, 210); // Blue link
-    doc.text("info.finsubito.org", 105, finalY + 55, null, null, "center");
+    doc.text("info.finsubito.org", 105, adStartY + 35, null, null, "center");
 
-    // Save PDF
+    return doc;
+}
+
+function salvaPDF() {
+    if (!currentResult) {
+        alert("Calcola prima una rata per salvare il PDF.");
+        return;
+    }
+    const doc = generaOggettoPDF();
     doc.save(`Preventivo_${currentType}_${new Date().getTime()}.pdf`);
+}
+
+async function condividiPDF() {
+    if (!currentResult) {
+        alert("Calcola prima una rata per condividere il PDF.");
+        return;
+    }
+
+    const doc = generaOggettoPDF();
+    const pdfBlob = doc.output('blob');
+    const fileName = `Preventivo_${currentType}_${new Date().getTime()}.pdf`;
+
+    const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+            await navigator.share({
+                title: 'Preventivo ' + currentType,
+                text: 'Ecco il riepilogo del calcolo.',
+                files: [file]
+            });
+            console.log('Condivisione completata con successo');
+        } catch (error) {
+            console.error('Errore durante la condivisione:', error);
+            // Se l'utente annulla non mostriamo l'alert, altrimenti sì
+            if (error.name !== 'AbortError') {
+                 alert("Errore durante la condivisione del file.");
+            }
+        }
+    } else {
+        alert("La condivisione di file non è supportata su questo browser/dispositivo. Verrà scaricato il file.");
+        doc.save(fileName);
+    }
 }

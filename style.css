@@ -163,12 +163,43 @@ h2 {
     margin-bottom: 15px;
 }
 
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 15px 0;
+    gap: 10px;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+}
+
+.checkbox-group label {
+    margin: 0;
+    display: inline;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
 .pdf-btn {
     background-color: var(--secondary-color);
 }
 
 .pdf-btn:hover {
     background-color: var(--secondary-hover);
+}
+
+.share-btn {
+    background-color: #FF9800;
+}
+
+.share-btn:hover {
+    background-color: #F57C00;
 }
 
 .advertisement {

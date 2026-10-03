@@ -71,7 +71,16 @@
         <div id="risultato" class="result-section" style="display: none;">
             <h3>Risultato</h3>
             <p id="risultato-testo"></p>
-            <button id="btn-pdf" class="btn pdf-btn" onclick="generaPDF()">Scarica/Condividi PDF</button>
+
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="includi-ammortamento">
+                <label for="includi-ammortamento">Includi piano di ammortamento nel PDF</label>
+            </div>
+
+            <div class="action-buttons">
+                <button id="btn-salva-pdf" class="btn pdf-btn" onclick="salvaPDF()">Salva PDF</button>
+                <button id="btn-condividi-pdf" class="btn share-btn" onclick="condividiPDF()">Condividi PDF</button>
+            </div>
         </div>
 
         <div class="advertisement">
