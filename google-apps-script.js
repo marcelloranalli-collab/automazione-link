@@ -1,4 +1,12 @@
+function doGet(e) {
+  return handleRequest(e);
+}
+
 function doPost(e) {
+  return handleRequest(e);
+}
+
+function handleRequest(e) {
   try {
     var action = e.parameter.action;
     var email = e.parameter.email;
