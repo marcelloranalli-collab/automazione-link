@@ -34,31 +34,10 @@ async function richiediCodice(event) {
         formData.append('email', pendingEmail);
 
         if(GOOGLE_SCRIPT_URL !== 'INSERISCI_QUI_IL_TUO_URL_SCRIPT') {
-            // Usa GET per evitare problemi di CORS preflight (OPTIONS) e redirect con fetch da origine file:// o cross-origin
-            const urlConParametri = `${GOOGLE_SCRIPT_URL}?${formData.toString()}`;
-
-            const response = await fetch(urlConParametri, {
-                method: 'GET',
-                // Nessuna modalità no-cors qui perché ci serve leggere la risposta JSON
-            });
-
-            if (!response.ok) {
-                throw new Error(`Errore di rete: ${response.status} ${response.statusText}`);
+            const result = await fetchJSONP(`${GOOGLE_SCRIPT_URL}?${formData.toString()}`);
+            if (result.status !== 'success') {
+                throw new Error(result.message || "Errore restituito dal server.");
             }
-
-            // Google Apps Script a volte restituisce HTML (es. pagina di login) se i permessi sono errati
-            const contentType = response.headers.get("content-type");
-            if (contentType && contentType.indexOf("application/json") !== -1) {
-                const result = await response.json();
-                if (result.status !== 'success') {
-                    throw new Error(result.message || "Errore restituito dal server.");
-                }
-            } else {
-                const text = await response.text();
-                console.error("Risposta non-JSON ricevuta (forse permessi web app errati):", text.substring(0, 200));
-                throw new Error("Errore di configurazione del server (controlla le autorizzazioni di Google Apps Script).");
-            }
-
         } else {
              console.log("Nota: URL Google Script non configurato. Salto l'invio reale dell'email. Usa '123456' per testare.");
         }
@@ -69,12 +48,31 @@ async function richiediCodice(event) {
 
     } catch (error) {
         console.error('Errore:', error);
-        // Mostra il messaggio di errore esatto per facilitare il debug all'utente (come si vede nell'immagine)
         alert(`Si è verificato un errore durante l'invio del codice. Dettagli: ${error.message}`);
         btnRichiedi.disabled = false;
         btnRichiedi.innerText = "Richiedi Codice";
         statusMsg.style.display = "none";
     }
+}
+
+// Funzione helper per JSONP: aggira i problemi di CORS quando si apre il file HTML localmente (file:///)
+function fetchJSONP(url) {
+    return new Promise((resolve, reject) => {
+        const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+        window[callbackName] = function(data) {
+            delete window[callbackName];
+            document.body.removeChild(script);
+            resolve(data);
+        };
+        const script = document.createElement('script');
+        script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
+        script.onerror = function() {
+            delete window[callbackName];
+            document.body.removeChild(script);
+            reject(new Error("Errore di rete o permessi Google Apps Script (assicurati di aver pubblicato per 'Chiunque')."));
+        };
+        document.body.appendChild(script);
+    });
 }
 
 async function verificaCodice(event) {
@@ -103,24 +101,9 @@ async function verificaCodice(event) {
         formData.append('code', codice);
 
         if(GOOGLE_SCRIPT_URL !== 'INSERISCI_QUI_IL_TUO_URL_SCRIPT') {
-            const urlConParametri = `${GOOGLE_SCRIPT_URL}?${formData.toString()}`;
-
-            const response = await fetch(urlConParametri, {
-                method: 'GET'
-            });
-
-            if (!response.ok) {
-                throw new Error(`Errore di rete: ${response.status} ${response.statusText}`);
-            }
-
-            const contentType = response.headers.get("content-type");
-            if (contentType && contentType.indexOf("application/json") !== -1) {
-                const result = await response.json();
-                if (result.status !== 'success') {
-                    throw new Error(result.message || "Codice errato");
-                }
-            } else {
-                throw new Error("Errore di configurazione del server durante la verifica.");
+            const result = await fetchJSONP(`${GOOGLE_SCRIPT_URL}?${formData.toString()}`);
+            if (result.status !== 'success') {
+                throw new Error(result.message || "Codice errato");
             }
         } else {
              if (codice !== '123456') {

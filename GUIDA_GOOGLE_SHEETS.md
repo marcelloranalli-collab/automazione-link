@@ -17,7 +17,7 @@ Ecco i passaggi dettagliati:
 
 ## Passo 3: Autorizzazioni e Pubblicazione come Web App
 Questo script ha bisogno dei permessi per inviare email a nome tuo.
-**IMPORTANTE:** Se hai già creato un'App Web in precedenza e stai aggiornando il codice, devi *sempre* selezionare "Nuovo deployment".
+**MOLTO IMPORTANTE:** Se hai già incollato il codice in precedenza e lo stai aggiornando ora, **DEVI** cliccare su "Nuovo deployment". Se clicchi solo su "Salva" o modifichi un deployment esistente, l'app continuerà a usare la versione vecchia del codice e darà errore (es. "Failed to fetch").
 
 1. In alto a destra, clicca sul pulsante blu **Esegui deployment** (o "Deploy") e seleziona **Nuovo deployment**.
 2. Clicca sull'icona dell'ingranaggio accanto a "Seleziona tipo" e scegli **App Web**.

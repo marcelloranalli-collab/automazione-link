@@ -26,9 +26,7 @@ function handleRequest(e) {
 
       MailApp.sendEmail(email, subject, body);
 
-      return ContentService
-        .createTextOutput(JSON.stringify({ "status": "success", "message": "Codice inviato" }))
-        .setMimeType(ContentService.MimeType.JSON);
+      return createResponse(e, { "status": "success", "message": "Codice inviato" });
 
     } else if (action === "verify_code") {
       var userCode = e.parameter.code;
@@ -43,24 +41,33 @@ function handleRequest(e) {
         var timestamp = new Date();
         sheet.appendRow([timestamp, nome, email]);
 
-        return ContentService
-          .createTextOutput(JSON.stringify({ "status": "success", "message": "Accesso verificato" }))
-          .setMimeType(ContentService.MimeType.JSON);
+        return createResponse(e, { "status": "success", "message": "Accesso verificato" });
       } else {
         // Codice errato o scaduto
-        return ContentService
-          .createTextOutput(JSON.stringify({ "status": "error", "message": "Codice errato o scaduto" }))
-          .setMimeType(ContentService.MimeType.JSON);
+        return createResponse(e, { "status": "error", "message": "Codice errato o scaduto" });
       }
     }
 
-    return ContentService
-      .createTextOutput(JSON.stringify({ "status": "error", "message": "Azione non valida" }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return createResponse(e, { "status": "error", "message": "Azione non valida" });
 
   } catch (error) {
+    return createResponse(e, { "status": "error", "message": error.toString() });
+  }
+}
+
+// Funzione helper per supportare sia JSON che JSONP (bypassa gli errori CORS dei file locali)
+function createResponse(e, responseObject) {
+  var jsonString = JSON.stringify(responseObject);
+
+  if (e.parameter.callback) {
+    // Risposta JSONP
     return ContentService
-      .createTextOutput(JSON.stringify({ "status": "error", "message": error.toString() }))
+      .createTextOutput(e.parameter.callback + '(' + jsonString + ');')
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  } else {
+    // Risposta JSON normale
+    return ContentService
+      .createTextOutput(jsonString)
       .setMimeType(ContentService.MimeType.JSON);
   }
 }
