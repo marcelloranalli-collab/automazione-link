@@ -9,12 +9,18 @@
     --ad-bg: #ffebee;
 }
 
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
 body {
     margin: 0;
+    padding: 10px;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: var(--text-color);
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    justify-content: flex-start;
     align-items: center;
     min-height: 100vh;
     background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
@@ -43,7 +49,9 @@ body {
     max-width: 650px;
     position: relative;
     z-index: 1;
-    margin: 20px 0;
+    margin: auto;
+    margin-top: 20px;
+    margin-bottom: 20px;
 }
 
 header h1 {
@@ -335,4 +343,35 @@ h2 {
     border-radius: 5px;
     border: 1px solid #bbdefb;
     margin-top: 10px;
+}
+
+/* Media Queries per Mobile */
+@media screen and (max-width: 600px) {
+    .container {
+        padding: 20px 15px;
+        margin-top: 10px;
+        margin-bottom: 10px;
+        border-radius: 10px;
+    }
+
+    .logo-link h2 {
+        font-size: 1.6rem;
+    }
+
+    header h1 {
+        font-size: 1.5rem;
+    }
+
+    .services-highlight {
+        padding: 12px 15px;
+    }
+
+    .tab-btn {
+        padding: 10px 5px;
+        font-size: 14px;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
 }
