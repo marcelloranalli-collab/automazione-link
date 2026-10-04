@@ -12,53 +12,59 @@
 <body>
     <div class="background-animation"></div>
 
-    <!-- Schermata di Accesso -->
-    <div class="container" id="login-container">
+    <!-- App Principale -->
+    <div class="container" id="app-container">
         <header>
-            <h1>Benvenuto</h1>
-            <p>Inserisci i tuoi dati per accedere al calcolatore</p>
-        </header>
-
-        <form id="form-accesso" onsubmit="richiediCodice(event)">
-            <div class="form-group">
-                <label for="user-nome">Nome e Cognome:</label>
-                <input type="text" id="user-nome" required placeholder="Es. Mario Rossi">
-            </div>
-            <div class="form-group">
-                <label for="user-email">Email:</label>
-                <input type="email" id="user-email" required placeholder="Es. mario@email.it">
-            </div>
-            <button type="submit" class="btn calc-btn" id="btn-richiedi">Richiedi Codice</button>
-            <p id="login-status" style="display: none; text-align: center; color: var(--primary-color); margin-top: 10px;"></p>
-        </form>
-
-        <form id="form-verifica" onsubmit="verificaCodice(event)" style="display: none;">
-            <p style="text-align: center; font-size: 0.9rem; margin-bottom: 15px;">Abbiamo inviato un codice a 6 cifre alla tua email. Inseriscilo qui sotto per continuare.</p>
-            <div class="form-group">
-                <label for="user-codice">Codice di Verifica:</label>
-                <input type="text" id="user-codice" required placeholder="Es. 123456" maxlength="6" pattern="\d{6}">
-            </div>
-            <button type="submit" class="btn calc-btn" id="btn-verifica">Verifica e Accedi</button>
-            <p id="verifica-status" style="display: none; text-align: center; color: var(--primary-color); margin-top: 10px;"></p>
-        </form>
-    </div>
-
-    <!-- App Principale (Nascosta all'inizio) -->
-    <div class="container" id="app-container" style="display: none;">
-        <header>
+            <a href="https://www.finsubito.org" target="_blank" class="logo-link">
+                <h2>#finsubito.org</h2>
+            </a>
             <h1>Calcolatore Rata</h1>
+            <p class="cta-top">
+                Richiedi informazioni senza impegno:
+                <a href="https://info.finsubito.org" target="_blank">compila il form su info.finsubito.org</a>
+            </p>
         </header>
+
+        <div class="services-highlight">
+            <h3>I Nostri Servizi: Consulenza e Assistenza <span class="highlight">senza nessun costo da anticipare</span></h3>
+
+            <div class="service-category">
+                <h4>Per i Privati (Mutui e Prestiti Veloci)</h4>
+                <ul>
+                    <li><strong>Mutui ad alta copertura:</strong> Consulenza per mutui acquisto casa fino al 100% del valore dell'immobile, incluse soluzioni per acquisti complessi o immobili all'asta.</li>
+                    <li><strong>Prestiti personali veloci:</strong> Soluzioni di finanziamento rapide per ottenere liquidità immediata da destinare a progetti, spese personali o consolidamento debiti.</li>
+                    <li><strong>Cessione del quinto:</strong> Accesso al credito dedicato a pensionati e dipendenti con contratto a tempo indeterminato, basato sulla stabilità del proprio stipendio o trattamento previdenziale.</li>
+                </ul>
+            </div>
+
+            <div class="service-category">
+                <h4>Per le Imprese e i Professionisti</h4>
+                <ul>
+                    <li><strong>Finanza agevolata:</strong> Supporto completo per individuare e richiedere contributi a fondo perduto e incentivi nazionali o europei.</li>
+                    <li><strong>Credito d'impresa:</strong> Analisi di prefattibilità immediata e anonima per valutare l'effettiva possibilità di ottenere finanziamenti bancari e linee di liquidità.</li>
+                </ul>
+            </div>
+
+            <div class="service-category">
+                <h4>Consulenza Generale</h4>
+                <ul>
+                    <li><strong>Orientamento normativo:</strong> Assistenza nella preparazione della documentazione e nella gestione dei rapporti con gli istituti di credito e gli enti erogatori per minimizzare il rischio di rigetto delle domande.</li>
+                </ul>
+            </div>
+
+            <p class="service-summary">In sintesi, il servizio opera come intermediario per semplificare la burocrazia e facilitare l'ottenimento di liquidità, prestiti veloci e incentivi sia per i cittadini che per le attività economiche.</p>
+        </div>
 
         <div class="tabs">
-            <button class="tab-btn active" onclick="openTab(event, 'mutuo')">Mutuo</button>
+            <button class="tab-btn active" onclick="openTab(event, 'mutuo')">Prestito / Mutuo</button>
             <button class="tab-btn" onclick="openTab(event, 'leasing')">Leasing</button>
         </div>
 
         <div id="mutuo" class="tab-content active">
-            <h2>Calcolo Rata Mutuo</h2>
+            <h2>Calcolo Rata Prestito / Mutuo</h2>
             <form id="form-mutuo">
                 <div class="form-group">
-                    <label for="importo-mutuo">Importo Mutuo (€):</label>
+                    <label for="importo-mutuo">Importo Prestito/Mutuo (€):</label>
                     <input type="number" id="importo-mutuo" required min="1">
                 </div>
                 <div class="form-group">
@@ -69,7 +75,7 @@
                     <label for="durata-mutuo">Durata (Anni):</label>
                     <input type="number" id="durata-mutuo" required min="1">
                 </div>
-                <button type="button" class="btn calc-btn" onclick="calcolaMutuo()">Calcola Mutuo</button>
+                <button type="button" class="btn calc-btn" onclick="calcolaMutuo()">Calcola Prestito/Mutuo</button>
             </form>
         </div>
 
@@ -117,10 +123,10 @@
 
         <div class="advertisement">
             <div class="ad-content">
-                <p>Hai bisogno di un finanziamento?</p>
+                <p>Hai bisogno di un finanziamento o di assistenza?</p>
                 <a href="https://finsubito.org" target="_blank" class="ad-link">#finsubito.org</a>
-                <p class="ad-info">Per richiedere informazioni, compila il form su:</p>
-                <a href="https://info.finsubito.org" target="_blank" class="ad-link-secondary">info.finsubito.org</a>
+                <p class="ad-info">Per richiedere informazioni o una consulenza gratuita, compila il form su:</p>
+                <a href="https://info.finsubito.org" target="_blank" class="ad-link-secondary cta-bottom">info.finsubito.org</a>
             </div>
         </div>
     </div>

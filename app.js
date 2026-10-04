@@ -1,129 +1,5 @@
-// Inserisci qui l'URL dello script di Google Apps Script generato
-const GOOGLE_SCRIPT_URL = 'INSERISCI_QUI_IL_TUO_URL_SCRIPT';
-
 let currentResult = null;
 let currentType = null;
-
-// Memorizza nome ed email temporaneamente per la verifica
-let pendingNome = '';
-let pendingEmail = '';
-
-async function richiediCodice(event) {
-    event.preventDefault();
-
-    pendingNome = document.getElementById('user-nome').value;
-    pendingEmail = document.getElementById('user-email').value;
-    const btnRichiedi = document.getElementById('btn-richiedi');
-    const statusMsg = document.getElementById('login-status');
-
-    if (!pendingNome || !pendingEmail) {
-        alert('Compila tutti i campi per procedere.');
-        return;
-    }
-
-    // Cambia stato del bottone
-    btnRichiedi.disabled = true;
-    btnRichiedi.innerText = "Invio in corso...";
-    statusMsg.style.display = "block";
-    statusMsg.innerText = "Richiesta codice in corso...";
-
-    try {
-        const formData = new URLSearchParams();
-        formData.append('action', 'send_code');
-        formData.append('nome', pendingNome);
-        formData.append('email', pendingEmail);
-
-        if(GOOGLE_SCRIPT_URL !== 'INSERISCI_QUI_IL_TUO_URL_SCRIPT') {
-            const result = await fetchJSONP(`${GOOGLE_SCRIPT_URL}?${formData.toString()}`);
-            if (result.status !== 'success') {
-                throw new Error(result.message || "Errore restituito dal server.");
-            }
-        } else {
-             console.log("Nota: URL Google Script non configurato. Salto l'invio reale dell'email. Usa '123456' per testare.");
-        }
-
-        // Passa alla schermata di verifica
-        document.getElementById('form-accesso').style.display = 'none';
-        document.getElementById('form-verifica').style.display = 'block';
-
-    } catch (error) {
-        console.error('Errore:', error);
-        alert(`Si è verificato un errore durante l'invio del codice. Dettagli: ${error.message}`);
-        btnRichiedi.disabled = false;
-        btnRichiedi.innerText = "Richiedi Codice";
-        statusMsg.style.display = "none";
-    }
-}
-
-// Funzione helper per JSONP: aggira i problemi di CORS quando si apre il file HTML localmente (file:///)
-function fetchJSONP(url) {
-    return new Promise((resolve, reject) => {
-        const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
-        window[callbackName] = function(data) {
-            delete window[callbackName];
-            document.body.removeChild(script);
-            resolve(data);
-        };
-        const script = document.createElement('script');
-        script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
-        script.onerror = function() {
-            delete window[callbackName];
-            document.body.removeChild(script);
-            reject(new Error("Errore di rete o permessi Google Apps Script (assicurati di aver pubblicato per 'Chiunque')."));
-        };
-        document.body.appendChild(script);
-    });
-}
-
-async function verificaCodice(event) {
-    event.preventDefault();
-
-    const codice = document.getElementById('user-codice').value;
-    const btnVerifica = document.getElementById('btn-verifica');
-    const statusMsg = document.getElementById('verifica-status');
-
-    if (!codice) {
-        alert('Inserisci il codice di verifica.');
-        return;
-    }
-
-    // Cambia stato del bottone
-    btnVerifica.disabled = true;
-    btnVerifica.innerText = "Verifica in corso...";
-    statusMsg.style.display = "block";
-    statusMsg.innerText = "Attendere prego...";
-
-    try {
-        const formData = new URLSearchParams();
-        formData.append('action', 'verify_code');
-        formData.append('email', pendingEmail);
-        formData.append('nome', pendingNome);
-        formData.append('code', codice);
-
-        if(GOOGLE_SCRIPT_URL !== 'INSERISCI_QUI_IL_TUO_URL_SCRIPT') {
-            const result = await fetchJSONP(`${GOOGLE_SCRIPT_URL}?${formData.toString()}`);
-            if (result.status !== 'success') {
-                throw new Error(result.message || "Codice errato");
-            }
-        } else {
-             if (codice !== '123456') {
-                 throw new Error("Codice di test errato (usa 123456)");
-             }
-             console.log("Nota: Accesso simulato con successo.");
-        }
-
-        // Accesso consentito, nascondi il form e mostra l'app
-        document.getElementById('login-container').style.display = 'none';
-        document.getElementById('app-container').style.display = 'block';
-
-    } catch (error) {
-        console.error('Errore di verifica:', error);
-        alert(error.message || "Codice errato o scaduto. Riprova.");
-        btnVerifica.disabled = false;
-        btnVerifica.innerText = "Verifica e Accedi";
-        statusMsg.style.display = "none";
-    }
-}
 
 function openTab(evt, tabName) {
     // Hide all tab contents
@@ -188,7 +64,7 @@ function calcolaMutuo() {
         });
     }
 
-    currentType = 'Mutuo';
+    currentType = 'Prestito / Mutuo';
     currentResult = {
         importo: importo,
         tassoAnnuo: tassoAnnuo,
@@ -197,7 +73,7 @@ function calcolaMutuo() {
         pianoAmmortamento: pianoAmmortamento
     };
 
-    mostraRisultato(`Rata Mensile Mutuo: €${rata.toFixed(2)}`);
+    mostraRisultato(`Rata Mensile: €${rata.toFixed(2)}`);
 }
 
 function calcolaLeasing() {
@@ -289,9 +165,9 @@ function generaOggettoPDF() {
 
     let bodyData = [];
 
-    if (currentType === 'Mutuo') {
+    if (currentType === 'Prestito / Mutuo') {
         bodyData = [
-            ['Importo Mutuo', `€ ${currentResult.importo.toFixed(2)}`],
+            ['Importo', `€ ${currentResult.importo.toFixed(2)}`],
             ['Tasso Annuo', `${currentResult.tassoAnnuo.toFixed(2)} %`],
             ['Durata', currentResult.durata],
             ['Rata Mensile Stimata', `€ ${currentResult.rata.toFixed(2)}`]

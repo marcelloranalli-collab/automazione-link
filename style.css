@@ -40,14 +40,15 @@ body {
     border-radius: 15px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     width: 100%;
-    max-width: 500px;
+    max-width: 650px;
     position: relative;
     z-index: 1;
+    margin: 20px 0;
 }
 
 header h1 {
     text-align: center;
-    margin-top: 0;
+    margin-top: 5px;
     color: #333;
 }
 
@@ -55,6 +56,78 @@ header p {
     text-align: center;
     color: #666;
     margin-bottom: 25px;
+}
+
+.logo-link {
+    display: block;
+    text-align: center;
+    text-decoration: none;
+}
+
+.logo-link h2 {
+    color: #e53935;
+    font-size: 2rem;
+    font-weight: 900;
+    margin: 0 0 10px 0;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    transition: transform 0.3s;
+}
+
+.logo-link h2:hover {
+    transform: scale(1.05);
+}
+
+.cta-top a {
+    font-weight: bold;
+    color: #1976D2;
+    text-decoration: underline;
+}
+
+.services-highlight {
+    background-color: #f9fbe7;
+    border-left: 4px solid var(--primary-color);
+    padding: 15px 20px;
+    margin-bottom: 25px;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.services-highlight h3 {
+    margin-top: 0;
+    color: #2e7d32;
+    font-size: 1.1rem;
+}
+
+.highlight {
+    color: #d32f2f;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.service-category {
+    margin-top: 15px;
+}
+
+.service-category h4 {
+    margin: 0 0 5px 0;
+    color: #1565c0;
+    font-size: 1rem;
+}
+
+.service-category ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.service-category li {
+    margin-bottom: 5px;
+}
+
+.service-summary {
+    margin-top: 15px;
+    font-style: italic;
+    color: #555;
 }
 
 .tabs {
@@ -253,4 +326,13 @@ h2 {
 
 .ad-link-secondary:hover {
     color: #0d47a1;
+}
+
+.cta-bottom {
+    font-size: 1.1rem;
+    background-color: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: 1px solid #bbdefb;
+    margin-top: 10px;
 }
