@@ -290,3 +290,177 @@ async function condividiPDF() {
         doc.save(fileName);
     }
 }
+
+// ----------------------------------------------------
+// LOGICA NEWS FEED
+// ----------------------------------------------------
+(function() {
+    'use strict';
+
+    const FEED_BASE = 'https://www.google.it/alerts/feeds/03705093258573153679/7724034719465165919';
+    const container = document.getElementById('feed-container');
+    const lastUpdateTime = document.getElementById('last-update-time');
+    let isFirstLoad = true;
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        try {
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return dateStr;
+            return d.toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' });
+        } catch (_) {
+            return dateStr;
+        }
+    }
+
+    function formatTime() {
+        const now = new Date();
+        return now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit', second:'2-digit' });
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+        return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+    }
+
+    function cleanSummary(htmlString) {
+        if (!htmlString) return '';
+        let text = htmlString.replace(/<[^>]*>/g, ' ');
+        text = text.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '');
+        return text.replace(/\s+/g, ' ').trim();
+    }
+
+    async function fetchRawData(feedUrl) {
+        const cbUrl = feedUrl + '?t=' + new Date().getTime();
+
+        try {
+            const r1 = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(cbUrl)}`);
+            if (r1.ok) {
+                const data = await r1.json();
+                if (data.status === 'ok' && data.items && data.items.length > 0) {
+                    return { type: 'json', items: data.items };
+                }
+            }
+        } catch (e) { console.warn("Proxy 1 fallito..."); }
+
+        try {
+            const r2 = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(cbUrl)}`);
+            if (r2.ok) {
+                const text = await r2.text();
+                if (text && text.includes('<entry>')) return { type: 'xml', data: text };
+            }
+        } catch (e) { console.warn("Proxy 2 fallito..."); }
+
+        try {
+            const r3 = await fetch(`https://corsproxy.io/?${encodeURIComponent(cbUrl)}`);
+            if (r3.ok) {
+                const text = await r3.text();
+                if (text && text.includes('<entry>')) return { type: 'xml', data: text };
+            }
+        } catch (e) { console.warn("Proxy 3 fallito."); }
+
+        throw new Error("Tutti i proxy hanno fallito.");
+    }
+
+    async function fetchFeed(isManualRefresh = false) {
+        if (isFirstLoad || isManualRefresh) {
+            container.innerHTML = `<div class="loading">⏳ Sincronizzazione in corso...</div>`;
+        }
+
+        try {
+            const result = await fetchRawData(FEED_BASE);
+            let html = '';
+
+            if (result.type === 'json') {
+                result.items.forEach(item => {
+                    const title = cleanSummary(item.title);
+                    const link = item.link || '#';
+                    const pubDate = formatDate(item.pubDate);
+                    let desc = cleanSummary(item.description);
+
+                    let source = "News";
+                    try {
+                        const urlObj = new URL(link);
+                        const realUrlStr = urlObj.searchParams.get("url");
+                        if (realUrlStr) source = new URL(realUrlStr).hostname.replace('www.', '');
+                    } catch(e) {}
+
+                    if (!desc || desc.length < 20) desc = 'Dettagli non disponibili nell\'anteprima. Accedi all\'articolo completo.';
+                    else if (desc.length > 180) desc = desc.substring(0, 180) + '...';
+
+                    html += `
+                        <div class="feed-item">
+                            <div class="meta"><span class="source">${escapeHtml(source)}</span><span>${pubDate}</span></div>
+                            <h2><a href="${escapeHtml(link)}" target="_blank" rel="noopener">${escapeHtml(title)}</a></h2>
+                            <div class="summary">${escapeHtml(desc)}</div>
+                            <a href="${escapeHtml(link)}" target="_blank" class="read-more-link">Leggi l'articolo</a>
+                        </div>`;
+                });
+            } else if (result.type === 'xml') {
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(result.data, "text/xml");
+                const entries = xmlDoc.querySelectorAll("entry");
+
+                entries.forEach(entry => {
+                    const titleNode = entry.querySelector("title");
+                    const title = titleNode ? cleanSummary(titleNode.textContent) : '(Senza titolo)';
+                    const linkNode = entry.querySelector("link");
+                    const link = linkNode ? linkNode.getAttribute("href") : '#';
+                    const pubDateNode = entry.querySelector("published") || entry.querySelector("updated");
+                    const pubDate = formatDate(pubDateNode ? pubDateNode.textContent : '');
+                    const contentNode = entry.querySelector("content");
+                    let desc = cleanSummary(contentNode ? contentNode.textContent : '');
+
+                    let source = "News";
+                    try {
+                        const urlObj = new URL(link);
+                        const realUrlStr = urlObj.searchParams.get("url");
+                        if (realUrlStr) source = new URL(realUrlStr).hostname.replace('www.', '');
+                    } catch(e) {}
+
+                    if (!desc || desc.length < 20) desc = 'Dettagli non disponibili nell\'anteprima. Accedi all\'articolo completo.';
+                    else if (desc.length > 180) desc = desc.substring(0, 180) + '...';
+
+                    html += `
+                        <div class="feed-item">
+                            <div class="meta"><span class="source">${escapeHtml(source)}</span><span>${pubDate}</span></div>
+                            <h2><a href="${escapeHtml(link)}" target="_blank" rel="noopener">${escapeHtml(title)}</a></h2>
+                            <div class="summary">${escapeHtml(desc)}</div>
+                            <a href="${escapeHtml(link)}" target="_blank" class="read-more-link">Leggi l'articolo</a>
+                        </div>`;
+                });
+            }
+
+            container.innerHTML = html;
+            lastUpdateTime.textContent = `Aggiornato alle ${formatTime()}`;
+            isFirstLoad = false;
+
+        } catch (err) {
+            console.error('Errore durante la sincronizzazione:', err);
+            lastUpdateTime.textContent = "Aggiornamento fallito";
+
+            container.innerHTML = `
+                <div class="error">
+                    <strong>Impossibile sincronizzare le notizie in questo momento</strong><br />
+                    Si è verificato un blocco di rete. Clicca su "Aggiorna Ora" per riprovare.
+                </div>
+            `;
+        }
+    }
+
+    // Delay the initial fetch slightly to prioritize the calculator rendering
+    setTimeout(() => {
+        fetchFeed();
+        setInterval(() => fetchFeed(), 180000);
+    }, 1000);
+
+    const refreshBtn = document.getElementById('refresh-btn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => {
+            lastUpdateTime.textContent = "Sincronizzazione in corso...";
+            fetchFeed(true);
+        });
+    }
+
+})();
