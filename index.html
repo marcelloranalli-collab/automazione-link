@@ -1,13 +1,212 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Google AI Studio App</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calcolatore Mutuo e Leasing</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Include jsPDF and autoTable for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+    <div class="background-animation"></div>
 
+    <!-- App Principale -->
+    <div class="container" id="app-container">
+        <header>
+            <a href="https://www.finsubito.org" target="_blank" class="logo-link">
+                <h2>🚀 #finsubito.org 🚀</h2>
+            </a>
+            <h1>🧮 Calcolatore Rata 🧮</h1>
+            <p class="cta-top">
+                Richiedi informazioni senza impegno: <br>
+                <a href="https://info.finsubito.org" target="_blank">👉 Compila il form su info.finsubito.org 👈</a>
+            </p>
+        </header>
+
+        <div class="content-wrapper">
+            <!-- Left Column: Services -->
+            <div class="services-column">
+                <div class="services-highlight">
+                    <h3>🌟 I Nostri Servizi: Consulenza e Assistenza <br><span class="highlight">senza nessun costo da anticipare</span> 🌟</h3>
+
+                    <div class="service-category">
+                        <h4>🏠 Per i Privati (Mutui e Prestiti Veloci)</h4>
+                        <ul>
+                            <li><strong>Mutui ad alta copertura:</strong> Consulenza per mutui acquisto casa fino al 100% del valore dell'immobile, incluse soluzioni per acquisti complessi o immobili all'asta.</li>
+                            <li><strong>Prestiti personali veloci:</strong> Soluzioni di finanziamento rapide per ottenere liquidità immediata da destinare a progetti, spese personali o consolidamento debiti.</li>
+                            <li><strong>Cessione del quinto:</strong> Accesso al credito dedicato a pensionati e dipendenti con contratto a tempo indeterminato, basato sulla stabilità del proprio stipendio o trattamento previdenziale.</li>
+                        </ul>
+                    </div>
+
+                    <div class="service-category">
+                        <h4>💼 Per le Imprese e i Professionisti</h4>
+                        <ul>
+                            <li><strong>Finanza agevolata:</strong> Supporto completo per individuare e richiedere contributi a fondo perduto e incentivi nazionali o europei.</li>
+                            <li><strong>Credito d'impresa:</strong> Analisi di prefattibilità immediata e anonima per valutare l'effettiva possibilità di ottenere finanziamenti bancari e linee di liquidità.</li>
+                        </ul>
+                    </div>
+
+                    <div class="service-category">
+                        <h4>🤝 Consulenza Generale</h4>
+                        <ul>
+                            <li><strong>Orientamento normativo:</strong> Assistenza nella preparazione della documentazione e nella gestione dei rapporti con gli istituti di credito e gli enti erogatori per minimizzare il rischio di rigetto delle domande.</li>
+                        </ul>
+                    </div>
+
+                    <p class="service-summary">✨ In sintesi, il servizio opera come intermediario per semplificare la burocrazia e facilitare l'ottenimento di liquidità, prestiti veloci e incentivi sia per i cittadini che per le attività economiche. ✨</p>
+                </div>
+            </div>
+
+            <!-- Right Column: Calculator -->
+            <div class="calculator-column">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="openTab(event, 'mutuo')">🏦 Prestito / Mutuo</button>
+                    <button class="tab-btn" onclick="openTab(event, 'leasing')">🚗 Leasing</button>
+                </div>
+
+                <div id="mutuo" class="tab-content active">
+                    <h2>Calcolo Rata Prestito / Mutuo</h2>
+                    <form id="form-mutuo">
+                        <div class="form-group">
+                            <label for="importo-mutuo">Importo Prestito/Mutuo (€):</label>
+                            <input type="number" id="importo-mutuo" required min="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="tasso-mutuo">Tasso di Interesse Annuo (%):</label>
+                            <input type="number" id="tasso-mutuo" step="0.01" required min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="durata-mutuo">Durata (Anni):</label>
+                            <input type="number" id="durata-mutuo" required min="1">
+                        </div>
+                        <button type="button" class="btn calc-btn" onclick="calcolaMutuo()">✨ Calcola Prestito/Mutuo ✨</button>
+                    </form>
+                </div>
+
+                <div id="leasing" class="tab-content">
+                    <h2>Calcolo Rata Leasing</h2>
+                    <form id="form-leasing">
+                        <div class="form-group">
+                            <label for="valore-bene">Valore del Bene (€):</label>
+                            <input type="number" id="valore-bene" required min="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="anticipo-leasing">Anticipo (€):</label>
+                            <input type="number" id="anticipo-leasing" required min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="riscatto-leasing">Valore di Riscatto (€):</label>
+                            <input type="number" id="riscatto-leasing" required min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="tasso-leasing">Tasso di Interesse Annuo (%):</label>
+                            <input type="number" id="tasso-leasing" step="0.01" required min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="durata-leasing">Durata (Mesi):</label>
+                            <input type="number" id="durata-leasing" required min="1">
+                        </div>
+                        <button type="button" class="btn calc-btn" onclick="calcolaLeasing()">✨ Calcola Leasing ✨</button>
+                    </form>
+                </div>
+
+                <div id="risultato" class="result-section" style="display: none;">
+                    <h3>🎉 Risultato 🎉</h3>
+                    <p id="risultato-testo"></p>
+
+                    <div class="form-group checkbox-group">
+                        <input type="checkbox" id="includi-ammortamento">
+                        <label for="includi-ammortamento">📄 Includi piano di ammortamento nel PDF</label>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button id="btn-salva-pdf" class="btn pdf-btn" onclick="salvaPDF()">💾 Salva PDF</button>
+                        <button id="btn-condividi-pdf" class="btn share-btn" onclick="condividiPDF()">📤 Condividi PDF</button>
+                    </div>
+                </div>
+
+                <div class="advertisement">
+                    <div class="ad-content">
+                        <p>Hai bisogno di un finanziamento o di assistenza? 💡</p>
+                        <a href="https://finsubito.org" target="_blank" class="ad-link">#finsubito.org</a>
+                        <p class="ad-info">Per richiedere informazioni o una consulenza gratuita, compila il form su:</p>
+                        <a href="https://info.finsubito.org" target="_blank" class="ad-link-secondary cta-bottom">🔥 info.finsubito.org 🔥</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEZIONE NEWS FEED -->
+    <div class="container news-section">
+        <div class="header-container">
+            <h1 class="news-title">
+                Le news <span class="brand">#Finsubito</span>
+            </h1>
+            <div class="status-badge" id="status-badge">
+                <div class="status-dot"></div>
+                <span id="last-update-time">In attesa...</span>
+            </div>
+        </div>
+
+        <!-- SLOGAN INIZIALE FINANZIAMENTI IMPRESE E PRIVATI -->
+        <div class="hero-financing">
+            <div class="hero-content">
+                <h2 class="hero-title">Soluzioni di Finanziamento Online per Imprese e Privati</h2>
+                <p>Ottieni liquidità per i tuoi progetti con un servizio rapido, sicuro e trasparente.</p>
+                <div class="hero-badges">
+                    <span class="hero-badge">⚡ Prefattibilità Immediata</span>
+                    <span class="hero-badge">🛡️ Zero Costi da Anticipare</span>
+                </div>
+            </div>
+            <div class="hero-cta-container">
+                <a class="hero-btn" href="https://info.finsubito.org" target="_blank">Richiedi Informazioni</a>
+            </div>
+        </div>
+
+        <div class="banner">
+            <div class="banner-text">
+                <span>Resta sempre aggiornato sulle opportunità del mondo</span>
+                <span class="hashtag">#Finsubito</span>
+            </div>
+            <a class="cta" href="https://www.finsubito.org" target="_blank">Scopri di più</a>
+        </div>
+
+        <div id="feed-container">
+            <div class="loading">⏳ Sincronizzazione in corso...</div>
+        </div>
+
+        <div class="info-section">
+            <h3>Come richiedere informazioni</h3>
+            <p>Richiedi informazioni per il tuo finanziamento personale o aziendale, nessun costo da anticipare <strong><a href="https://info.finsubito.org" target="_blank">info.finsubito.org</a></strong></p>
+            <p>Per una panoramica delle agevolazioni sul territorio nazionale clicca su: <strong><a href="https://www.finsubito.org" target="_blank">www.finsubito.org</a></strong></p>
+        </div>
+
+        <div class="footer">
+            <div>Il feed si aggiorna automaticamente ogni 3 minuti in background.</div>
+            <button id="refresh-btn">⟳ Aggiorna Ora</button>
+        </div>
+    </div>
+
+    <!-- CONTATORE HISTATS - Inserito in modo visibile e centrato a fine pagina -->
+    <div style="margin-top: 25px; margin-bottom: 25px; display: flex; justify-content: center; align-items: center; width: 100%; position: relative; z-index: 10;">
+        <!-- Histats.com  (div with counter) --><div id="histats_counter"></div>
+        <!-- Histats.com  START  (aync)-->
+        <script type="text/javascript">var _Hasync= _Hasync|| [];
+        _Hasync.push(['Histats.start', '1,4684678,4,424,112,75,00011111']);
+        _Hasync.push(['Histats.fasi', '1']);
+        _Hasync.push(['Histats.track_hits', '']);
+        (function() {
+        var hs = document.createElement('script'); hs.type = 'text/javascript'; hs.async = true;
+        hs.src = ('https://s10.histats.com/js15_as.js');
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(hs);
+        })();</script>
+        <noscript><a href="/" target="_blank"><img src="https://sstatic1.histats.com/0.gif?4684678&101" alt="statistiche web" border="0"></a></noscript>
+        <!-- Histats.com  END  -->
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
