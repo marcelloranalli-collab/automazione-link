@@ -595,6 +595,7 @@ export default function App() {
               onClick={logOut}
               className="p-2 text-slate-400 hover:text-red-400 transition-colors"
               title="Logout"
+              aria-label="Logout"
             >
               <LogOut className="w-5 h-5" />
             </button>
@@ -699,12 +700,19 @@ export default function App() {
               <motion.div 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="text-center py-20 bg-slate-900/30 rounded-3xl border-2 border-dashed border-slate-800"
+                className="text-center py-20 bg-slate-900/30 rounded-3xl border-2 border-dashed border-slate-800 flex flex-col items-center"
               >
-                <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mb-4">
                   <Plus className="w-8 h-8 text-slate-600" />
                 </div>
-                <p className="text-slate-500">Non hai ancora aggiunto alcun link programmato.</p>
+                <p className="text-slate-500 mb-6">Non hai ancora aggiunto alcun link programmato.</p>
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="flex items-center gap-2 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 px-6 py-3 rounded-xl font-semibold transition-all active:scale-95 border border-indigo-500/30"
+                >
+                  <Plus className="w-5 h-5" />
+                  Crea il tuo primo link
+                </button>
               </motion.div>
             ) : (
               links.map((link) => (
@@ -774,6 +782,7 @@ export default function App() {
                       onClick={() => handleRunNow(link)}
                       className="p-2 text-slate-400 hover:text-green-400 hover:bg-green-400/10 rounded-xl transition-all border border-transparent hover:border-green-400/20"
                       title="Avvia subito"
+                      aria-label={`Avvia ${link.url} subito`}
                     >
                       <Play className="w-5 h-5" />
                     </button>
@@ -786,6 +795,7 @@ export default function App() {
                           : "bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700"
                       )}
                       title={link.isActive ? "Disattiva programmazione" : "Attiva programmazione"}
+                      aria-label={`${link.isActive ? "Disattiva" : "Attiva"} programmazione per ${link.url}`}
                     >
                       <Power className="w-4 h-4" />
                       {link.isActive ? "ON" : "OFF"}
@@ -794,6 +804,7 @@ export default function App() {
                       onClick={() => openEditModal(link)}
                       className="p-2 text-slate-400 hover:text-indigo-400 hover:bg-indigo-400/10 rounded-xl transition-all border border-transparent hover:border-indigo-400/20"
                       title="Modifica"
+                      aria-label={`Modifica programmazione per ${link.url}`}
                     >
                       <Pencil className="w-5 h-5" />
                     </button>
@@ -801,6 +812,7 @@ export default function App() {
                       onClick={() => setLinkToDelete(link.id)}
                       className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all border border-transparent hover:border-red-400/20"
                       title="Elimina"
+                      aria-label={`Elimina programmazione per ${link.url}`}
                     >
                       <Trash2 className="w-5 h-5" />
                     </button>
@@ -830,6 +842,7 @@ export default function App() {
                 <button
                   onClick={() => setShowAdminPanel(false)}
                   className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors"
+                  aria-label="Chiudi pannello admin"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -863,6 +876,7 @@ export default function App() {
                         onClick={() => handleRemoveAuthorizedUser(u.id)}
                         className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
                         title="Rimuovi accesso"
+                        aria-label={`Rimuovi accesso per ${u.email}`}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -899,6 +913,7 @@ export default function App() {
                 <button 
                   onClick={closeModal}
                   className="p-2 hover:bg-slate-800 rounded-full transition-colors"
+                  aria-label="Chiudi modale"
                 >
                   <X className="w-6 h-6" />
                 </button>
@@ -906,10 +921,11 @@ export default function App() {
 
               <form onSubmit={handleSaveLink} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-2">URL del sito</label>
+                  <label htmlFor="url" className="block text-sm font-medium text-slate-400 mb-2">URL del sito</label>
                   <div className="relative">
                     <ExternalLink className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                     <input
+                      id="url"
                       required
                       type="url"
                       placeholder="https://example.com"
@@ -922,10 +938,11 @@ export default function App() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-400 mb-2">Orario Apertura</label>
+                    <label htmlFor="openTime" className="block text-sm font-medium text-slate-400 mb-2">Orario Apertura</label>
                     <div className="relative">
                       <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                       <input
+                        id="openTime"
                         required
                         type="time"
                         value={newLink.openTime || '09:00'}
@@ -935,10 +952,11 @@ export default function App() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-400 mb-2">Orario Fine (Opzionale)</label>
+                    <label htmlFor="endTime" className="block text-sm font-medium text-slate-400 mb-2">Orario Fine (Opzionale)</label>
                     <div className="relative">
                       <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                       <input
+                        id="endTime"
                         type="time"
                         value={newLink.endTime || ''}
                         onChange={e => setNewLink({...newLink, endTime: e.target.value})}
@@ -949,8 +967,9 @@ export default function App() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-2">Data Scadenza (Opzionale)</label>
+                  <label htmlFor="endDate" className="block text-sm font-medium text-slate-400 mb-2">Data Scadenza (Opzionale)</label>
                   <input
+                    id="endDate"
                     type="date"
                     value={newLink.endDate || ''}
                     onChange={e => setNewLink({...newLink, endDate: e.target.value})}
@@ -961,10 +980,11 @@ export default function App() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-400 mb-2">Durata Apertura (min)</label>
+                    <label htmlFor="duration" className="block text-sm font-medium text-slate-400 mb-2">Durata Apertura (min)</label>
                     <div className="relative">
                       <Timer className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                       <input
+                        id="duration"
                         required
                         type="number"
                         min="1"
@@ -979,10 +999,11 @@ export default function App() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-2">Ripeti ogni (minuti)</label>
+                  <label htmlFor="repeatInterval" className="block text-sm font-medium text-slate-400 mb-2">Ripeti ogni (minuti)</label>
                   <div className="relative">
                     <Settings className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                     <input
+                      id="repeatInterval"
                       type="number"
                       min="0"
                       max="1440"
