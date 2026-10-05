@@ -774,6 +774,7 @@ export default function App() {
                       onClick={() => handleRunNow(link)}
                       className="p-2 text-slate-400 hover:text-green-400 hover:bg-green-400/10 rounded-xl transition-all border border-transparent hover:border-green-400/20"
                       title="Avvia subito"
+                      aria-label="Avvia subito"
                     >
                       <Play className="w-5 h-5" />
                     </button>
@@ -786,6 +787,7 @@ export default function App() {
                           : "bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700"
                       )}
                       title={link.isActive ? "Disattiva programmazione" : "Attiva programmazione"}
+                      aria-label={link.isActive ? "Disattiva programmazione" : "Attiva programmazione"}
                     >
                       <Power className="w-4 h-4" />
                       {link.isActive ? "ON" : "OFF"}
@@ -794,6 +796,7 @@ export default function App() {
                       onClick={() => openEditModal(link)}
                       className="p-2 text-slate-400 hover:text-indigo-400 hover:bg-indigo-400/10 rounded-xl transition-all border border-transparent hover:border-indigo-400/20"
                       title="Modifica"
+                      aria-label="Modifica"
                     >
                       <Pencil className="w-5 h-5" />
                     </button>
@@ -801,6 +804,7 @@ export default function App() {
                       onClick={() => setLinkToDelete(link.id)}
                       className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all border border-transparent hover:border-red-400/20"
                       title="Elimina"
+                      aria-label="Elimina"
                     >
                       <Trash2 className="w-5 h-5" />
                     </button>
@@ -830,6 +834,7 @@ export default function App() {
                 <button
                   onClick={() => setShowAdminPanel(false)}
                   className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors"
+                  aria-label="Chiudi pannello admin"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -841,6 +846,7 @@ export default function App() {
                   value={newAuthorizedEmail}
                   onChange={(e) => setNewAuthorizedEmail(e.target.value)}
                   placeholder="Email utente..."
+                  aria-label="Email utente"
                   className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                   required
                 />
@@ -863,6 +869,7 @@ export default function App() {
                         onClick={() => handleRemoveAuthorizedUser(u.id)}
                         className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
                         title="Rimuovi accesso"
+                        aria-label={`Rimuovi accesso per ${u.email}`}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -899,6 +906,7 @@ export default function App() {
                 <button 
                   onClick={closeModal}
                   className="p-2 hover:bg-slate-800 rounded-full transition-colors"
+                  aria-label="Chiudi finestra"
                 >
                   <X className="w-6 h-6" />
                 </button>
@@ -906,10 +914,11 @@ export default function App() {
 
               <form onSubmit={handleSaveLink} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-2">URL del sito</label>
+                  <label htmlFor="url-input" className="block text-sm font-medium text-slate-400 mb-2">URL del sito</label>
                   <div className="relative">
                     <ExternalLink className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                     <input
+                      id="url-input"
                       required
                       type="url"
                       placeholder="https://example.com"
@@ -922,10 +931,11 @@ export default function App() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-400 mb-2">Orario Apertura</label>
+                    <label htmlFor="openTime-input" className="block text-sm font-medium text-slate-400 mb-2">Orario Apertura</label>
                     <div className="relative">
                       <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                       <input
+                        id="openTime-input"
                         required
                         type="time"
                         value={newLink.openTime || '09:00'}
@@ -935,10 +945,11 @@ export default function App() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-400 mb-2">Orario Fine (Opzionale)</label>
+                    <label htmlFor="endTime-input" className="block text-sm font-medium text-slate-400 mb-2">Orario Fine (Opzionale)</label>
                     <div className="relative">
                       <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                       <input
+                        id="endTime-input"
                         type="time"
                         value={newLink.endTime || ''}
                         onChange={e => setNewLink({...newLink, endTime: e.target.value})}
@@ -949,8 +960,9 @@ export default function App() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-2">Data Scadenza (Opzionale)</label>
+                  <label htmlFor="endDate-input" className="block text-sm font-medium text-slate-400 mb-2">Data Scadenza (Opzionale)</label>
                   <input
+                    id="endDate-input"
                     type="date"
                     value={newLink.endDate || ''}
                     onChange={e => setNewLink({...newLink, endDate: e.target.value})}
@@ -961,10 +973,11 @@ export default function App() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-400 mb-2">Durata Apertura (min)</label>
+                    <label htmlFor="duration-input" className="block text-sm font-medium text-slate-400 mb-2">Durata Apertura (min)</label>
                     <div className="relative">
                       <Timer className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                       <input
+                        id="duration-input"
                         required
                         type="number"
                         min="1"
@@ -979,10 +992,11 @@ export default function App() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-2">Ripeti ogni (minuti)</label>
+                  <label htmlFor="repeatInterval-input" className="block text-sm font-medium text-slate-400 mb-2">Ripeti ogni (minuti)</label>
                   <div className="relative">
                     <Settings className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                     <input
+                      id="repeatInterval-input"
                       type="number"
                       min="0"
                       max="1440"
