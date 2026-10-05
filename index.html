@@ -1,13 +1,564 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Google AI Studio App</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Scheda Esposizioni aziendali - #finsubito.org</title>
 
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        /* Animated Gradient Background for Header */
+        .bg-animated-gradient {
+            background: linear-gradient(-45deg, #1e3a8a, #3b82f6, #0284c7, #0ea5e9);
+            background-size: 400% 400%;
+            animation: gradientBG 10s ease infinite;
+        }
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Hover animation for inputs */
+        .input-wrapper input:hover, .input-wrapper select:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.2s ease;
+        }
+
+        /* Fade-in for newly added rows */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .desktop-header { display: none; }
+        .mobile-label { display: block; font-weight: 600; font-size: 0.70rem; color: #4b5563; margin-bottom: 2px; text-transform: uppercase; }
+
+        @media (min-width: 1024px) {
+            .desktop-header { display: grid; }
+            .mobile-label { display: none; }
+            .row-container {
+                display: grid;
+                grid-template-columns: 1.5fr 1.2fr 0.9fr 0.9fr 0.9fr 0.9fr 0.9fr 0.7fr 50px;
+                gap: 8px;
+                align-items: center;
+                border-bottom: 1px solid #e5e7eb;
+                padding: 6px 0;
+                transition: background-color 0.2s ease;
+            }
+            .row-container:hover {
+                background-color: #f8fafc;
+            }
+        }
+
+        @media (max-width: 1023px) {
+            .row-container {
+                display: flex;
+                flex-direction: column;
+                background: white;
+                padding: 15px;
+                margin-bottom: 15px;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                border: 1px solid #e2e8f0;
+                position: relative;
+            }
+            .mobile-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+            .input-wrapper { margin-bottom: 8px; }
+            .delete-cell { position: absolute; top: 10px; right: 10px; }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #1e3a8a;
+            color: white;
+            padding: 14px 24px;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+            max-width: 92vw;
+            text-align: center;
+            line-height: 1.5;
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .toast.warning { background: #b45309; }
+        .toast.success { background: #15803d; }
+        .toast .residuo-value { font-size: 18px; font-weight: 800; display: block; margin-top: 4px; }
+        .toast .residuo-date { font-size: 12px; opacity: 0.85; display: block; }
+        .btn-calc:active { transform: scale(0.92); }
+
+        /* Pulse animation for CTA buttons */
+        .btn-pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans pb-40 lg:pb-10">
+
+    <!-- Navbar / Header branded with #finsubito.org -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <a href="https://www.finsubito.org" target="_blank" class="flex items-center gap-2 text-2xl font-extrabold text-blue-900 hover:text-blue-700 transition">
+                <i class="fas fa-chart-line text-blue-600"></i>
+                #finsubito.org
+            </a>
+            <a href="https://info.finsubito.org" target="_blank" class="hidden sm:inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full shadow-lg transition-transform hover:scale-105 btn-pulse">
+                🚀 Richiedi Finanziamento
+            </a>
+        </div>
+    </header>
+
+    <!-- Services Description Highlight -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded text-sm text-blue-800 flex items-start gap-3 shadow-sm">
+            <i class="fas fa-hand-holding-usd text-2xl mt-1 text-blue-500"></i>
+            <div>
+                <strong class="text-base">Scopri i nostri servizi finanziari! 🎉</strong><br>
+                Analizziamo la tua situazione senza impegno. <span class="font-bold underline text-blue-900">Zero costi anticipati! 💸</span> Affidati a professionisti del settore per la tua azienda.
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto bg-white lg:shadow-xl lg:rounded-lg lg:mb-8 flex flex-col">
+
+        <div class="bg-animated-gradient text-white p-5 lg:rounded-t-lg sticky top-0 z-20 shadow-md lg:static">
+            <div class="flex justify-between items-center">
+                <h1 class="text-xl lg:text-2xl font-bold uppercase tracking-wide flex items-center gap-2">
+                    <i class="fas fa-file-invoice-dollar"></i> Scheda Esposizioni Aziendali
+                </h1>
+                <i class="fas fa-file-pdf text-3xl text-blue-200 drop-shadow-md"></i>
+            </div>
+            <div class="mt-2 text-blue-100 text-xs flex justify-between font-medium">
+                <span>Compilazione Posizioni Finanziarie 📊</span>
+                <span id="current-date" class="bg-white/20 px-2 py-1 rounded">Data: --/--/----</span>
+            </div>
+        </div>
+
+        <div class="p-3 lg:p-6 flex-grow">
+
+            <div class="mb-4 lg:mb-5 bg-gradient-to-r from-blue-50 to-white border border-blue-200 rounded-lg p-4 shadow-sm">
+                <label for="nome-azienda" class="block text-xs font-bold text-blue-900 uppercase mb-2 flex items-center gap-2">
+                    <i class="fas fa-building text-blue-600"></i> Nome Azienda (Debitore)
+                </label>
+                <input id="nome-azienda" type="text"
+                       class="w-full p-3 border border-blue-300 rounded-lg text-base font-semibold text-gray-800 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-300 outline-none transition-all shadow-inner"
+                       placeholder="Es. Rossi S.r.l.">
+                <p class="mt-2 text-[11px] text-blue-800 flex items-center gap-1">
+                    <i class="fas fa-percentage text-blue-500"></i>
+                    <span>Calcolo del <strong>residuo capitale</strong> al <strong id="data-rif-1">--/--/----</strong> con piano di ammortamento francese, tasso annuo <strong>6%</strong> (mensile 0,5%).</span>
+                </p>
+            </div>
+
+            <div class="desktop-header bg-gray-100 text-xs font-bold text-gray-600 uppercase py-3 px-2 rounded border border-gray-200 mb-2 sticky top-0"
+                 style="grid-template-columns: 1.5fr 1.2fr 0.9fr 0.9fr 0.9fr 0.9fr 0.9fr 0.7fr 50px; gap: 8px;">
+                <div>Creditore</div>
+                <div>Natura</div>
+                <div>Data Inizio</div>
+                <div>Scadenza</div>
+                <div>Rata (€)</div>
+                <div>Erogato (€)</div>
+                <div>Residuo Debito (€)</div>
+                <div>Regolare</div>
+                <div></div>
+            </div>
+
+            <div id="rows-container"></div>
+
+            <button onclick="addRow()" class="mt-4 w-full py-3 border-2 border-dashed border-blue-400 text-blue-600 font-bold rounded-lg hover:bg-blue-50 hover:border-blue-500 transition-all flex justify-center items-center gap-2 text-sm uppercase">
+                <i class="fas fa-plus-circle text-lg"></i> Aggiungi Posizione ➕
+            </button>
+
+            <div class="mt-6 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-300 rounded-lg shadow-sm">
+                <label class="block mb-2 text-sm font-bold text-yellow-800 flex items-center gap-2">
+                    <i class="fas fa-info-circle text-yellow-600"></i>
+                    N.B.: Segnalazioni ritardi, insoluti, protesti o pregiudizievoli? ⚠️
+                </label>
+                <textarea id="footer-notes" rows="3" class="w-full p-3 text-sm bg-white border border-yellow-300 rounded-lg focus:ring-2 focus:ring-yellow-500 outline-none transition-all shadow-inner" placeholder="Inserisci qui eventuali note..."></textarea>
+            </div>
+        </div>
+
+        <div class="fixed bottom-0 left-0 right-0 bg-white border-t p-4 shadow-[0_-5px_20px_rgba(0,0,0,0.1)] z-50 lg:relative lg:shadow-none lg:bg-gray-50 lg:rounded-b-lg">
+            <div class="max-w-7xl mx-auto flex flex-col sm:flex-row gap-3">
+                <a href="https://info.finsubito.org" target="_blank" class="w-full sm:hidden flex justify-center items-center gap-2 bg-green-500 text-white py-3 rounded-lg font-bold hover:bg-green-600 shadow transition btn-pulse">
+                    🚀 Richiedi Finanziamento
+                </a>
+
+                <button onclick="generatePDF('share')" class="w-full flex justify-center items-center gap-2 bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 shadow hover:scale-[1.02] transition-transform">
+                    <i class="fas fa-share-alt"></i> Condividi PDF 📲
+                </button>
+                <button onclick="generatePDF('download')" class="w-full flex justify-center items-center gap-2 bg-red-600 text-white py-3 rounded-lg font-bold hover:bg-red-700 shadow hover:scale-[1.02] transition-transform">
+                    <i class="fas fa-file-download"></i> Scarica PDF 📥
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        const TASSO_ANNUO = 0.06;
+        const TASSO_MENSILE = TASSO_ANNUO / 12; // 0,005
+
+        // Data odierna di riferimento (fissata al caricamento)
+        const OGGI = new Date();
+        OGGI.setHours(0, 0, 0, 0);
+        const OGGI_STR = OGGI.toLocaleDateString('it-IT');
+
+        // Visualizza la data di riferimento in pagina
+        document.getElementById('current-date').textContent = "Data: " + OGGI_STR;
+        document.getElementById('data-rif-1').textContent = OGGI_STR;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            addRow();
+        });
+
+        function showToast(html, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.innerHTML = html;
+            toast.className = 'toast ' + type + ' show';
+            clearTimeout(window._toastTimeout);
+            window._toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 6000);
+        }
+
+        function addRow() {
+            const container = document.getElementById('rows-container');
+            const div = document.createElement('div');
+            div.className = "row-container fade-in";
+
+            div.innerHTML = `
+                <div class="input-wrapper">
+                    <span class="mobile-label">Creditore</span>
+                    <input type="text" class="field-creditore w-full p-2 border border-gray-300 rounded text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-shadow bg-white" placeholder="Es. Banca X">
+                </div>
+                <div class="input-wrapper">
+                    <span class="mobile-label">Natura</span>
+                    <input type="text" class="field-natura w-full p-2 border border-gray-300 rounded text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-shadow bg-white" placeholder="Es. Mutuo">
+                </div>
+
+                <div class="mobile-grid-2 lg:contents">
+                    <div class="input-wrapper">
+                        <span class="mobile-label">Data Inizio</span>
+                        <input type="date" class="field-inizio w-full p-2 border border-gray-300 rounded text-sm focus:border-blue-500 outline-none text-gray-600 transition-shadow bg-white">
+                    </div>
+                    <div class="input-wrapper">
+                        <span class="mobile-label">Scadenza</span>
+                        <input type="date" class="field-fine w-full p-2 border border-gray-300 rounded text-sm focus:border-blue-500 outline-none text-gray-600 transition-shadow bg-white">
+                    </div>
+                </div>
+
+                <div class="mobile-grid-2 lg:contents">
+                    <div class="input-wrapper">
+                        <span class="mobile-label">Rata (€)</span>
+                        <input type="number" step="0.01" class="field-rata w-full p-2 border border-gray-300 rounded text-sm focus:border-blue-500 outline-none transition-shadow bg-white" placeholder="0.00">
+                    </div>
+                    <div class="input-wrapper">
+                        <span class="mobile-label">Erogato (€)</span>
+                        <input type="number" step="0.01" class="field-erogato w-full p-2 border border-gray-300 rounded text-sm focus:border-blue-500 outline-none transition-shadow bg-white" placeholder="0.00">
+                    </div>
+                </div>
+
+                <div class="input-wrapper">
+                    <span class="mobile-label">Residuo Debito (€) al ${OGGI_STR}</span>
+                    <div class="flex gap-1">
+                        <input type="number" step="0.01" class="field-residuo w-full p-2 border border-gray-300 rounded text-sm focus:border-blue-500 outline-none transition-shadow bg-gray-50" placeholder="0.00" readonly>
+                        <button type="button" onclick="calculateResiduo(this)"
+                                class="btn-calc bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-3 rounded text-sm flex items-center justify-center transition-all shadow"
+                                title="Calcola il residuo capitale alla data odierna (${OGGI_STR}) - tasso 6% annuo">
+                            <i class="fas fa-calculator"></i>
+                        </button>
+                    </div>
+                    <span class="text-[10px] text-gray-500 mt-1 block">Calcolato alla data odierna: <strong>${OGGI_STR}</strong></span>
+                </div>
+
+                <div class="input-wrapper">
+                    <span class="mobile-label">Regolare</span>
+                    <select class="field-note w-full max-w-[90px] lg:max-w-none p-2 border border-gray-300 rounded text-sm focus:border-blue-500 outline-none bg-white transition-shadow">
+                        <option value="">--</option>
+                        <option value="Sì">Sì ✅</option>
+                        <option value="No">No ❌</option>
+                    </select>
+                </div>
+
+                <div class="delete-cell text-center">
+                    <button onclick="removeRow(this)" class="text-red-400 hover:text-red-600 p-2 rounded-full hover:bg-red-50 transition-colors">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        function removeRow(btn) {
+            const rows = document.querySelectorAll('.row-container');
+            if (rows.length > 1) {
+                const row = btn.closest('.row-container');
+                row.style.opacity = '0';
+                row.style.transform = 'scale(0.95)';
+                setTimeout(() => row.remove(), 200);
+            } else {
+                const inputs = btn.closest('.row-container').querySelectorAll('input:not([readonly]), select');
+                inputs.forEach(i => i.value = '');
+                const readonlyInputs = btn.closest('.row-container').querySelectorAll('input[readonly]');
+                readonlyInputs.forEach(i => i.value = '');
+            }
+        }
+
+        // --- CALCOLO RESIDUO CAPITALE ALLA DATA ODIERNA ---
+        function calculateResiduo(btn) {
+            try {
+                const row = btn.closest('.row-container');
+                const inizioInput  = row.querySelector('.field-inizio');
+                const fineInput    = row.querySelector('.field-fine');
+                const rataInput    = row.querySelector('.field-rata');
+                const erogatoInput = row.querySelector('.field-erogato');
+                const residuoInput = row.querySelector('.field-residuo');
+
+                const inizioVal  = inizioInput.value;
+                const fineVal    = fineInput.value;
+                const rataVal    = parseFloat(rataInput.value);
+                const erogatoVal = parseFloat(erogatoInput.value);
+
+                if (!inizioVal) {
+                    showToast(`⚠️ Inserisci la <strong>Data Inizio</strong> per calcolare il residuo.`, 'warning');
+                    return;
+                }
+                if (isNaN(rataVal) || rataVal <= 0) {
+                    showToast(`⚠️ Inserisci una <strong>Rata</strong> valida (maggiore di 0).`, 'warning');
+                    return;
+                }
+                if (isNaN(erogatoVal) || erogatoVal <= 0) {
+                    showToast(`⚠️ Inserisci l'importo <strong>Erogato</strong> per calcolare il capitale residuo.`, 'warning');
+                    return;
+                }
+
+                const inizio = new Date(inizioVal + 'T00:00:00');
+
+                // --- CASO 1: finanziamento non ancora iniziato ---
+                if (inizio > OGGI) {
+                    residuoInput.value = erogatoVal.toFixed(2);
+                    showToast(
+                        `<span class="residuo-date">Alla data odierna ${OGGI_STR}</span>` +
+                        `Finanziamento non ancora iniziato (inizio ${inizio.toLocaleDateString('it-IT')}).` +
+                        `<span class="residuo-value">Residuo capitale: € ${erogatoVal.toFixed(2)}</span>`,
+                        'info'
+                    );
+                    return;
+                }
+
+                // --- CASO 2: scadenza passata → debito estinto ---
+                if (fineVal) {
+                    const fine = new Date(fineVal + 'T00:00:00');
+                    if (!isNaN(fine.getTime()) && OGGI >= fine) {
+                        residuoInput.value = '0.00';
+                        showToast(
+                            `<span class="residuo-date">Alla data odierna ${OGGI_STR}</span>` +
+                            `Finanziamento scaduto il ${fine.toLocaleDateString('it-IT')}.` +
+                            `<span class="residuo-value">Residuo capitale: € 0,00</span>`,
+                            'warning'
+                        );
+                        return;
+                    }
+                }
+
+                const i = TASSO_MENSILE;
+
+                // Controllo: la rata deve coprire almeno gli interessi del primo mese
+                if (rataVal <= erogatoVal * i) {
+                    showToast(
+                        `<span class="residuo-date">Alla data odierna ${OGGI_STR}</span>` +
+                        `⚠️ La rata (€ ${rataVal.toFixed(2)}) non copre gli interessi mensili ` +
+                        `(€ ${(erogatoVal * i).toFixed(2)}).` +
+                        `<span class="residuo-value">Residuo capitale: non calcolabile</span>`,
+                        'warning'
+                    );
+                    return;
+                }
+
+                // Mesi trascorsi da inizio a oggi
+                const MS_AL_MESE = 1000 * 60 * 60 * 24 * 30.4375;
+                let k = Math.round((OGGI - inizio) / MS_AL_MESE);
+                if (k < 0) k = 0;
+
+                // Numero rate necessarie per estinguere (formula ammortamento francese)
+                const n = -Math.log(1 - (erogatoVal * i) / rataVal) / Math.log(1 + i);
+
+                let residuo;
+                if (k >= n) {
+                    residuo = 0;
+                } else {
+                    const fattore = Math.pow(1 + i, k);
+                    residuo = erogatoVal * fattore - rataVal * (fattore - 1) / i;
+                }
+                if (residuo < 0) residuo = 0;
+
+                residuoInput.value = residuo.toFixed(2);
+
+                // Messaggio finale con DATA ODIERNA + RESIDUO CAPITALE
+                const notaPiano = (k >= n)
+                    ? `Piano già estinto (durata teorica: ${Math.ceil(n)} rate).`
+                    : `Rate pagate: ${k} di ${Math.ceil(n)} previste.`;
+
+                showToast(
+                    `<span class="residuo-date">Alla data odierna ${OGGI_STR}</span>` +
+                    `<span class="residuo-value">Residuo capitale: € ${residuo.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>` +
+                    `<span class="residuo-date">${notaPiano} — Tasso 6% annuo</span>`,
+                    'success'
+                );
+            } catch (err) {
+                console.error('Errore calcolo residuo:', err);
+                showToast('⚠️ Errore durante il calcolo. Riprova.', 'warning');
+            }
+        }
+
+        // --- GENERAZIONE PDF ---
+        async function generatePDF(action) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('landscape');
+            const nomeAzienda = document.getElementById('nome-azienda').value.trim();
+
+            doc.setFontSize(18);
+            doc.text("SCHEDA ESPOSIZIONI IN ESSERE AZIENDALI", 14, 15);
+
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text("Azienda: " + (nomeAzienda || "________________________________"), 14, 23);
+
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(10);
+            doc.text("Data compilazione: " + OGGI_STR, 14, 29);
+            doc.setFontSize(9);
+            doc.setTextColor(80, 80, 80);
+            doc.text("Nota: il Residuo Debito si riferisce al solo capitale, calcolato alla data odierna con piano di ammortamento francese a tasso fisso del 6% annuo.", 14, 34);
+
+            // Adding finsubito reference to PDF
+            doc.setTextColor(30, 58, 138);
+            doc.text("Generato tramite #finsubito.org - Servizi Finanziari (info.finsubito.org)", 14, doc.internal.pageSize.getHeight() - 10);
+            doc.setTextColor(0, 0, 0);
+
+            const headers = [["Creditore", "Natura", "Inizio", "Scadenza", "Rata (€)", "Erogato (€)", `Residuo Capitale al ${OGGI_STR} (€)`, "Regolare"]];
+            const data = [];
+
+            document.querySelectorAll('.row-container').forEach(row => {
+                const getVal = (cls) => {
+                    const el = row.querySelector(cls);
+                    return el ? el.value : '';
+                };
+                let dInizio = getVal('.field-inizio');
+                let dFine = getVal('.field-fine');
+
+                // Remove emojis from the regular output
+                let regularNote = getVal('.field-note');
+                if(regularNote) regularNote = regularNote.replace(/[^a-zA-Zì ]/g, "").trim();
+
+                data.push([
+                    getVal('.field-creditore'),
+                    getVal('.field-natura'),
+                    dInizio ? new Date(dInizio + 'T00:00:00').toLocaleDateString('it-IT') : '',
+                    dFine ? new Date(dFine + 'T00:00:00').toLocaleDateString('it-IT') : '',
+                    getVal('.field-rata'),
+                    getVal('.field-erogato'),
+                    getVal('.field-residuo'),
+                    regularNote
+                ]);
+            });
+
+            doc.autoTable({
+                head: headers,
+                body: data,
+                startY: 40,
+                theme: 'grid',
+                headStyles: { fillColor: [30, 58, 138] },
+                styles: { fontSize: 9 },
+                columnStyles: {
+                    0: { cellWidth: 42 },
+                    1: { cellWidth: 30 },
+                    2: { cellWidth: 24 },
+                    3: { cellWidth: 24 },
+                    4: { cellWidth: 22 },
+                    5: { cellWidth: 26 },
+                    6: { cellWidth: 40 },
+                    7: { cellWidth: 20 }
+                }
+            });
+
+            const finalY = doc.lastAutoTable.finalY + 10;
+            const footerNotes = document.getElementById('footer-notes').value;
+
+            if (footerNotes) {
+                doc.setFontSize(9);
+                doc.setTextColor(150, 0, 0);
+                doc.text("N.B.: SEGNALAZIONI / NOTE:", 14, finalY);
+                doc.setTextColor(0, 0, 0);
+                const splitNotes = doc.splitTextToSize(footerNotes, 270);
+                doc.text(splitNotes, 14, finalY + 5);
+            }
+
+            const aziendaFile = nomeAzienda ? nomeAzienda.replace(/[^a-z0-9]/gi, '_') + "_" : "";
+            const fileName = `Scheda_Esposizioni_${aziendaFile}${new Date().toISOString().slice(0,10)}.pdf`;
+
+            if (action === 'download') {
+                doc.save(fileName);
+            } else if (action === 'share') {
+                const pdfBlob = doc.output('blob');
+                const file = new File([pdfBlob], fileName, { type: "application/pdf" });
+
+                if (navigator.canShare && navigator.share) {
+                    try {
+                        await navigator.share({
+                            files: [file],
+                            title: 'Scheda Esposizioni aziendali',
+                            text: 'In allegato la scheda compilata. Powered by #finsubito.org'
+                        });
+                    } catch (err) {
+                        console.error("Errore condivisione:", err);
+                        alert("Impossibile condividere direttamente. Scarico il file.");
+                        doc.save(fileName);
+                    }
+                } else {
+                    alert("Il tuo browser non supporta la condivisione. Scarico il file.");
+                    doc.save(fileName);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
+<!-- CONTATORE HISTATS - Inserito in modo visibile e centrato a fine pagina -->
+<div style="margin-top: 25px; display: flex; justify-content: center; align-items: center; width: 100%; position: relative; z-index: 10; padding-bottom: 30px;">
+    <!-- Histats.com  (div with counter) --><div id="histats_counter"></div>
+    <!-- Histats.com  START  (aync)-->
+    <script type="text/javascript">var _Hasync= _Hasync|| [];
+    _Hasync.push(['Histats.start', '1,4684678,4,424,112,75,00011111']);
+    _Hasync.push(['Histats.fasi', '1']);
+    _Hasync.push(['Histats.track_hits', '']);
+    (function() {
+    var hs = document.createElement('script'); hs.type = 'text/javascript'; hs.async = true;
+    hs.src = ('https://s10.histats.com/js15_as.js');
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(hs);
+    })();</script>
+    <noscript><a href="/" target="_blank"><img src="https://sstatic1.histats.com/0.gif?4684678&101" alt="statistiche web" border="0"></a></noscript>
+    <!-- Histats.com  END  -->
+</div>
