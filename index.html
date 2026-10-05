@@ -1,13 +1,588 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Google AI Studio App</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WP‑Automatic Bulk Manager | Multi import + Batch</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .table-container { max-height: 65vh; overflow-y: auto; }
+        .table-container::-webkit-scrollbar { width: 8px; }
+        .table-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .modal-transition { transition: opacity 0.2s ease, visibility 0.2s ease; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 font-sans antialiased">
 
+<div class="container mx-auto px-4 py-8 max-w-7xl">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-slate-800 flex items-center gap-2">
+                <i class="fas fa-rss text-orange-500"></i> WP‑Automatic Bulk Manager
+            </h1>
+            <p class="text-slate-500 mt-1">Importa JSON · Aggiungi feed multipli · Modifica in blocco attributi</p>
+        </div>
+        <div class="flex flex-wrap gap-3">
+            <label for="import-file" class="cursor-pointer bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl shadow-md transition flex items-center gap-2">
+                <i class="fas fa-upload"></i> Importa JSON
+                <input type="file" id="import-file" accept=".json" class="hidden">
+            </label>
+            <button id="add-multi-btn" class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-xl shadow-md transition flex items-center gap-2">
+                <i class="fas fa-layer-group"></i> Aggiungi multipli
+            </button>
+            <button id="batch-min-btn" class="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2.5 rounded-xl shadow-md transition flex items-center gap-2">
+                <i class="fas fa-edit"></i> Imposta minimo (tutti)
+            </button>
+            <button id="batch-skip-words-btn" class="bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 rounded-xl shadow-md transition flex items-center gap-2">
+                <i class="fas fa-filter"></i> Imposta Skip Words (tutti)
+            </button>
+            <button id="batch-skip-btn" class="bg-cyan-600 hover:bg-cyan-700 text-white px-5 py-2.5 rounded-xl shadow-md transition flex items-center gap-2">
+                <i class="fas fa-clock"></i> Imposta Skip Min. (tutti)
+            </button>
+            <button id="export-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl shadow-md transition flex items-center gap-2">
+                <i class="fas fa-download"></i> Esporta JSON
+            </button>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6 flex justify-between items-center flex-wrap gap-2">
+        <div class="flex items-center gap-2 text-slate-600">
+            <i class="fas fa-list-ul"></i>
+            <span class="font-medium">Feed caricati:</span>
+            <span id="feeds-count" class="bg-slate-100 px-2 py-0.5 rounded-full text-sm font-mono">0</span>
+        </div>
+        <div class="text-sm text-slate-500">
+            <i class="fas fa-shield-alt text-green-500"></i> Protezione serialize PHP attiva: nessun Critical Error.
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
+        <div class="overflow-x-auto table-container">
+            <table class="min-w-full divide-y divide-slate-200">
+                <thead class="bg-slate-50 sticky top-0 z-10">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">ID</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Feed URL</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Template Titolo</th>
+                        <th class="px-4 py-3 text-center text-xs font-medium text-slate-500 uppercase">Min. caratteri</th>
+                        <th class="px-4 py-3 text-center text-xs font-medium text-slate-500 uppercase">Skip Minuti</th>
+                        <th class="px-4 py-3 text-center text-xs font-medium text-slate-500 uppercase">Skip Words</th>
+                    </tr>
+                </thead>
+                <tbody id="feeds-table-body" class="bg-white divide-y divide-slate-100">
+                    <tr><td colspan="5" class="text-center py-12 text-slate-400"><i class="fas fa-cloud-upload-alt text-3xl mb-2 block"></i>Nessun feed. Usa "Importa JSON" o "Aggiungi multipli".</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="mt-6 text-center text-xs text-slate-400"><i class="far fa-save"></i> Modifiche in memoria. Esporta per salvare permanentemente.</div>
+</div>
+
+<!-- MODALE AGGIUNTA MULTIPLI -->
+<div id="multi-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 hidden modal-transition">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center">
+            <h2 class="text-xl font-bold text-slate-800">Aggiungi Feed Multipli</h2>
+            <button id="close-multi-modal" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
+        </div>
+        <div class="p-6">
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-slate-700 mb-1">URL Feed (uno per riga) *</label>
+                <textarea id="multi-urls" rows="6" class="w-full border border-slate-300 rounded-lg px-4 py-2 font-mono text-sm focus:ring-2 focus:ring-purple-400" placeholder="https://example1.com/feed&#10;https://example2.com/rss"></textarea>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Template Titolo (comune)</label>
+                    <input type="text" id="multi-title" class="w-full border border-slate-300 rounded-lg px-4 py-2" value="#Finsubito news - [original_title]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">ID Autore (comune)</label>
+                    <input type="text" id="multi-author" class="w-full border border-slate-300 rounded-lg px-4 py-2" value="1">
+                </div>
+            </div>
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-slate-700 mb-1">Template Contenuto (comune)</label>
+                <textarea id="multi-content" rows="4" class="w-full border border-slate-300 rounded-lg px-4 py-2 font-mono text-sm">[ad_1]
+<br>[matched_content]
+<br>[ad_2]
+<strong>#Adessonews seleziona nella rete articoli di particolare interesse.</strong>
+<strong>Se vuoi leggere l'articolo completo clicca sul seguente link</strong>
+ [author]
+<br><a href="[source_link]">Source link </a></textarea>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Minimo caratteri (comune)</label>
+                    <input type="number" id="multi-min-chars" class="w-full border border-slate-300 rounded-lg px-4 py-2" value="5000">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Skip Minuti (Minutes passed to skip)</label>
+                    <input type="number" id="multi-skip-mins" class="w-full border border-slate-300 rounded-lg px-4 py-2" value="10080">
+                </div>
+            </div>
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-slate-700 mb-1">Skip Words (comma separated)</label>
+                <input type="text" id="multi-skip-words" class="w-full border border-slate-300 rounded-lg px-4 py-2" placeholder="word1, word2">
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" id="cancel-multi-modal" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50">Annulla</button>
+                <button type="button" id="confirm-multi" class="px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg shadow flex items-center gap-2"><i class="fas fa-plus-circle"></i> Crea Feed Multipli</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODALE BATCH SKIP WORDS -->
+<div id="batch-skip-words-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 hidden modal-transition">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4">
+        <div class="border-b border-slate-200 px-6 py-4 flex justify-between items-center">
+            <h2 class="text-xl font-bold text-slate-800">Imposta Skip Words (Tutti)</h2>
+            <button id="close-batch-skip-words-modal" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
+        </div>
+        <div class="p-6">
+            <p class="text-sm text-slate-500 mb-4">Nuovo valore per <code>cg_post_strip_by_words</code> su tutti i feed.</p>
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-slate-700 mb-1">Skip Words</label>
+                <input type="text" id="batch-skip-words-value" class="w-full border border-slate-300 rounded-lg px-4 py-2" placeholder="word1, word2">
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button id="cancel-batch-skip-words-modal" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50">Annulla</button>
+                <button id="confirm-batch-skip-words" class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg shadow flex items-center gap-2"><i class="fas fa-sync-alt"></i> Applica a tutti</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODALE BATCH MIN CARATTERI -->
+<div id="batch-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 hidden modal-transition">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4">
+        <div class="border-b border-slate-200 px-6 py-4 flex justify-between items-center">
+            <h2 class="text-xl font-bold text-slate-800">Imposta minimo caratteri</h2>
+            <button id="close-batch-modal" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
+        </div>
+        <div class="p-6">
+            <p class="text-sm text-slate-500 mb-4">Nuovo valore per <code>cg_min_length</code> su <span id="batch-count-display">0</span> feed.</p>
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-slate-700 mb-1">Minimo caratteri</label>
+                <input type="number" id="batch-min-value" class="w-full border border-slate-300 rounded-lg px-4 py-2" placeholder="es. 5000">
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button id="cancel-batch-modal" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50">Annulla</button>
+                <button id="confirm-batch" class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg shadow flex items-center gap-2"><i class="fas fa-sync-alt"></i> Applica a tutti</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODALE BATCH SKIP MINUTI -->
+<div id="batch-skip-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 hidden modal-transition">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4">
+        <div class="border-b border-slate-200 px-6 py-4 flex justify-between items-center">
+            <h2 class="text-xl font-bold text-slate-800">Imposta Skip Minuti (Tutti)</h2>
+            <button id="close-batch-skip-modal" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
+        </div>
+        <div class="p-6">
+            <p class="text-sm text-slate-500 mb-4">Nuovo valore per <code>cg_skip_minutes</code> su tutti i feed.</p>
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-slate-700 mb-1">Minuti da saltare</label>
+                <input type="number" id="batch-skip-value" class="w-full border border-slate-300 rounded-lg px-4 py-2" value="10080">
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button id="cancel-batch-skip-modal" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50">Annulla</button>
+                <button id="confirm-batch-skip" class="px-5 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg shadow flex items-center gap-2"><i class="fas fa-sync-alt"></i> Applica a tutti</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ---------- STATO & COSTANTI ----------
+    let feedsData = [];
+    let baseTemplate = null;
+
+    const PARAM_MIN_LENGTH = 'cg_min_length';
+    const PARAM_SKIP_MINUTES = 'cg_yt_dte_minutes';
+    const PARAM_SKIP_WORDS = 'cg_post_strip_by_words';
+
+    // ---------- FUNZIONI UNIVERSALI PER LEGGERE/MODIFICARE PARAMETRI IN camp_general ----------
+
+    function getParamVal(campGeneralStr, paramName) {
+        if (!campGeneralStr || typeof campGeneralStr !== 'string') return null;
+        try {
+            const decoded = atob(campGeneralStr);
+            let regex = new RegExp(`s:${paramName.length}:"${paramName}";s:(\\d+):"([^"]*)"`);
+            let match = decoded.match(regex);
+            if (match) return match[2];
+
+            regex = new RegExp(`s:${paramName.length}:"${paramName}";i:(\\d+);`);
+            match = decoded.match(regex);
+            if (match) return match[1];
+            return null;
+        } catch(e) {
+            console.warn(`getParamVal error [${paramName}]`, e);
+            return null;
+        }
+    }
+
+    function setParamVal(campGeneralStr, paramName, newValue) {
+        if (!campGeneralStr) return campGeneralStr;
+        try {
+            let decoded = atob(campGeneralStr);
+            const newValueStr = String(newValue);
+            const keyLen = paramName.length;
+
+            const regexString = new RegExp(`(s:${keyLen}:"${paramName}";s:)(\\d+):"([^"]*)"`);
+            const regexInt = new RegExp(`(s:${keyLen}:"${paramName}";i:)(\\d+);`);
+
+            if (regexString.test(decoded)) {
+                // Modifica stringa esistente (sicuro)
+                decoded = decoded.replace(regexString, `$1${newValueStr.length}:"${newValueStr}"`);
+            } else if (regexInt.test(decoded)) {
+                // Modifica intero esistente (sicuro)
+                decoded = decoded.replace(regexInt, `$1${newValueStr};`);
+            } else {
+                // INSERIMENTO SICURO: Invece di metterlo alla fine rischiando di rompere
+                // i sotto-array di WP-Automatic, lo inseriamo all'inizio del blocco.
+                const arrayRegex = /^a:(\d+):\{/;
+                const match = decoded.match(arrayRegex);
+
+                if (match) {
+                    const currentCount = parseInt(match[1]);
+                    const newCount = currentCount + 1;
+                    const insert = `s:${keyLen}:"${paramName}";s:${newValueStr.length}:"${newValueStr}";`;
+
+                    // Sostituisce l'intestazione aggiornando il count e inserisce il parametro immediatamente dopo la parentesi '{'
+                    decoded = decoded.replace(arrayRegex, `a:${newCount}:{${insert}`);
+                }
+            }
+            return btoa(decoded);
+        } catch(e) {
+            console.error(`setParamVal error [${paramName}]`, e);
+            return campGeneralStr;
+        }
+    }
+
+    // ---------- OGGETTO TEMPLATE BASATO ESATTAMENTE SUL TUO JSON ----------
+    function getDefaultTemplateObject() {
+        return {
+            "camp_id": "0",
+            "camp_name": "",
+            "camp_keywords": "",
+            "camp_post_title": "#Finsubito news - [original_title]",
+            "camp_post_content": "[ad_1]\r\n<br>[matched_content]\r\n<br>[ad_2]\r\n<strong>#Adessonews seleziona nella rete articoli di particolare interesse.</strong>\r\n<strong>Se vuoi leggere l'articolo completo clicca sul seguente link</strong>\r\n [author]\r\n<br><a href=\"[source_link]\">Source link </a>",
+            "camp_cb_category": "All",
+            "camp_replace_link": "",
+            "camp_post_status": "publish",
+            "camp_post_every": "1000000",
+            "camp_add_star": "",
+            "camp_post_category": "",
+            "camp_options": "a:38:{i:0;s:17:\"OPT_ORIGINAL_TIME\";i:1;s:16:\"OPT_MUST_CONTENT\";i:2;s:14:\"OPT_MUST_IMAGE\";i:3;s:15:\"OPT_FEED_SCRIPT\";i:4;s:12:\"OPT_CJ_CACHE\";i:5;s:12:\"OPT_AE_CACHE\";i:6;s:12:\"OPT_CL_CACHE\";i:7;s:12:\"OPT_WM_CACHE\";i:8;s:12:\"OPT_PL_CACHE\";i:9;s:21:\"OPT_RD_OFFICIAL_EMBED\";i:10;s:12:\"OPT_RD_CACHE\";i:11;s:12:\"OPT_IU_CACHE\";i:12;s:12:\"OPT_EV_CACHE\";i:13;s:12:\"OPT_FB_CACHE\";i:14;s:21:\"OPT_GENERATE_FB_TITLE\";i:15;s:14:\"OPT_AM_GALLERY\";i:16;s:11:\"OPT_YT_DATE\";i:17;s:13:\"OPT_YT_DATE_T\";i:18;s:12:\"OPT_VM_CACHE\";i:19;s:16:\"OPT_GP_REMOVE_H1\";i:20;s:12:\"OPT_SC_CACHE\";i:21;s:17:\"OPT_PT_AUTO_TITLE\";i:22;s:12:\"OPT_PT_CACHE\";i:23;s:12:\"OPT_IT_CACHE\";i:24;s:17:\"OPT_IT_AUTO_TITLE\";i:25;s:9:\"OPT_TW_RT\";i:26;s:9:\"OPT_TW_RE\";i:27;s:16:\"OPT_TW_VID_EMBED\";i:28;s:12:\"OPT_DM_CACHE\";i:29;s:12:\"OPT_YT_CACHE\";i:30;s:12:\"OPT_EB_CACHE\";i:31;s:12:\"OPT_FL_CACHE\";i:32;s:18:\"OPT_CB_DESCRIPTION\";i:33;s:9:\"OPT_THUMB\";i:34;s:15:\"OPT_THUMB_STRIP\";i:35;s:13:\"OPT_THUM_NELO\";i:36;s:16:\"OPT_FEEDS_OG_IMG\";i:37;s:14:\"OPT_MIN_LENGTH\";}",
+            "feeds": "",
+            "camp_type": "Feeds",
+            "camp_search_order": "",
+            "camp_amazon_cat": "",
+            "camp_youtube_cat": "All",
+            "camp_youtube_order": "relevance",
+            "camp_amazon_region": "com",
+            "camp_post_author": "1",
+            "camp_post_custom_k": "a:1:{i:0;s:0:\"\";}",
+            "camp_post_custom_v": "a:1:{i:0;s:0:\"\";}",
+            "camp_post_exact": "",
+            "camp_general": "YToyNTg6e3M6MTU6ImNnX3VwZGF0ZV9ldmVyeSI7czoxOiIxIjtzOjE0OiJjZ191cGRhdGVfdW5pdCI7czoxOiIxIjtzOjE1OiJjZ19jdXN0b21fc3RhcnQiO3M6MToiMSI7czoyMzoiY2dfY3VzdG9tX3N0YXJ0X21pbnV0ZXMiO3M6MToiMCI7czoyMToiY2dfY3VzdG9tX3N0YXJ0X2FtX3BtIjtzOjI6ImFtIjtzOjEzOiJjZ19jdXN0b21fZW5kIjtzOjE6IjEiO3M6MjE6ImNnX2N1c3RvbV9lbmRfbWludXRlcyI7czoxOiIwIjtzOjE5OiJjZ19jdXN0b21fZW5kX2FtX3BtIjtzOjI6ImFtIjtzOjE3OiJjZ19iaW5nX2ZyZXNobmVzcyI7czozOiJEYXkiO3M6MTQ6ImNnX2Jpbmdfc29ydEJ5IjtzOjk6IlJlbGV2YW5jZSI7czoxMDoiY2dfYmluZ19jYyI7czowOiIiO3M6MTE6ImNnX2JpbmdfY2F0IjtzOjA6IiI7czoxMzoiY2dfYmluZ19jb3VudCI7czowOiIiO3M6MTU6ImNnX2Jpbmdfc2V0TGFuZyI7czowOiIiO3M6MTI6ImNnX21sX3NvdXJjZSI7czowOiIiO3M6MTY6ImNnX21sX2xua19tZXRob2QiO3M6NjoidmlzdWFsIjtzOjE4OiJjZ19tbF9sbmtfY3NzX3R5cGUiO2E6MTp7aTowO3M6MjoiaWQiO31zOjEzOiJjZ19tbF9sbmtfY3NzIjthOjE6e2k6MDtzOjA6IiI7fXM6MTg6ImNnX21sX2xua19jc3Nfc2l6ZSI7YToxOntpOjA7czozOiJhbGwiO31zOjE4OiJjZ19tbF9sbmtfY3NzX3dyYXAiO2E6MTp7aTowO3M6NToib3V0ZXIiO31zOjE1OiJjZ19tbF9sbmtfcmVnZXgiO2E6MTp7aTowO3M6MDoiIjt9czoxNjoiY2dfbWxfbG5rX3Zpc3VhbCI7YToxOntpOjA7czowOiIiO31zOjE3OiJjZ19hcGlmeV93YWl0X2ZvciI7czowOiIiO3M6MjM6ImNnX211bHRpX3NlYXJjaF9yZXBsYWNlIjtzOjA6IiI7czoxMjoiY2dfbWxfYXBwZW5kIjtzOjA6IiI7czoxNjoiY2dfbWxfY250X21ldGhvZCI7czo0OiJhdXRvIjtzOjE4OiJjZ19tbF9jbnRfY3NzX3R5cGUiO2E6MTp7aTowO3M6MjoiaWQiO31zOjEzOiJjZ19tbF9jbnRfY3NzIjthOjE6e2k6MDtzOjA6IiI7fXM6MTg6ImNnX21sX2NudF9jc3Nfc2l6ZSI7YToxOntpOjA7czozOiJhbGwiO31zOjE4OiJjZ19tbF9jbnRfY3NzX3dyYXAiO2E6MTp7aTowO3M6NToib3V0ZXIiO31zOjE1OiJjZ19tbF9jbnRfcmVnZXgiO2E6MTp7aTowO3M6MDoiIjt9czoxNjoiY2dfbWxfcGFnZV8yX3VybCI7czowOiIiO3M6MjA6ImNnX21sX3BhZ2VfaW5jcmVtZW50IjtzOjA6IiI7czoxNToiY2dfbWxfcGFnZV9iYXNlIjtzOjA6IiI7czoxNDoiY2dfbWxfaW5maW5pdGUiO3M6MDoiIjtzOjE2OiJjZ19tbF9jbnRfdmlzdWFsIjthOjE6e2k6MDtzOjA6IiI7fXM6MTk6ImNnX211bHRpX3Bvc3RzX2xpc3QiO3M6MDoiIjtzOjExOiJjZ19tbF9jYWNoZSI7czo3OiJlbmFibGVkIjtzOjEyOiJjZ19zbl9zb3VyY2UiO3M6MDoiIjtzOjE2OiJjZ19zbl90dGxfbWV0aG9kIjtzOjQ6ImF1dG8iO3M6MTQ6ImNnX3NuX2Nzc190eXBlIjthOjE6e2k6MDtzOjI6ImlkIjt9czo5OiJjZ19zbl9jc3MiO2E6MTp7aTowO3M6MDoiIjt9czoxNDoiY2dfc25fY3NzX3NpemUiO2E6MTp7aTowO3M6MzoiYWxsIjt9czoxNDoiY2dfc25fY3NzX3dyYXAiO2E6MTp7aTowO3M6NToib3V0ZXIiO31zOjExOiJjZ19zbl9yZWdleCI7YToxOntpOjA7czowOiIiO31zOjEyOiJjZ19zbl92aXN1YWwiO2E6MTp7aTowO3M6MDoiIjt9czoxNjoiY2dfc25fY250X21ldGhvZCI7czo0OiJhdXRvIjtzOjE4OiJjZ19zbl9jbnRfY3NzX3R5cGUiO2E6MTp7aTowO3M6MjoiaWQiO31zOjEzOiJjZ19zbl9jbnRfY3NzIjthOjE6e2k6MDtzOjA6IiI7fXM6MTg6ImNnX3NuX2NudF9jc3Nfc2l6ZSI7YToxOntpOjA7czozOiJhbGwiO31zOjE4OiJjZ19zbl9jbnRfY3NzX3dyYXAiO2E6MTp7aTowO3M6NToib3V0ZXIiO31zOjE1OiJjZ19zbl9jbnRfcmVnZXgiO2E6MTp7aTowO3M6MDoiIjt9czoxNjoiY2dfc25fY250X3Zpc3VhbCI7YToxOntpOjA7czowOiIiO31zOjEyOiJjZ19zbl9jb29raWUiO3M6MDoiIjtzOjExOiJjZ19zbl9hZnRlciI7czo2OiJ1cGRhdGUiO3M6MTY6ImNnX21sX3R0bF9tZXRob2QiO3M6NDoiYXV0byI7czoxNDoiY2dfbWxfY3NzX3R5cGUiO2E6MTp7aTowO3M6MjoiaWQiO31zOjk6ImNnX21sX2NzcyI7YToxOntpOjA7czowOiIiO31zOjE0OiJjZ19tbF9jc3Nfc2l6ZSI7YToxOntpOjA7czozOiJhbGwiO31zOjE0OiJjZ19tbF9jc3Nfd3JhcCI7YToxOntpOjA7czo1OiJvdXRlciI7fXM6MTE6ImNnX21sX3JlZ2V4IjthOjE6e2k6MDtzOjA6IiI7fXM6MTM6ImNnX21sX2V4YW1wbGUiO3M6MDoiIjtzOjEyOiJjZ19tbF92aXN1YWwiO2E6MTp7aTowO3M6MDoiIjt9czoyNToiY2dfZmVlZF9leHRyYWN0aW9uX21ldGhvZCI7czo0OiJhdXRvIjtzOjE4OiJjZ19jdXN0b21fc2VsZWN0b3IiO2E6MTp7aTowO3M6MjoiaWQiO31zOjE3OiJjZ19mZWVkX2N1c3RvbV9pZCI7YToxOntpOjA7czowOiIiO31zOjE2OiJjZ19mZWVkX2Nzc19zaXplIjthOjE6e2k6MDtzOjM6ImFsbCI7fXM6MTY6ImNnX2ZlZWRfY3NzX3dyYXAiO2E6MTp7aTowO3M6NToib3V0ZXIiO31zOjIwOiJjZ19mZWVkX2N1c3RvbV9yZWdleCI7YToxOntpOjA7czowOiIiO31zOjE1OiJjZ19tbF9leGFtcGxlXzIiO3M6MDoiIjtzOjE0OiJjZ19mZWVkX3Zpc3VhbCI7YToxOntpOjA7czowOiIiO31zOjE5OiJjZ19mZWVkX3Zpc3VhbF9oaW50IjthOjE6e2k6MDtzOjA6IiI7fXM6MTk6ImNnX211bHRpX3BhZ2VkX2xpbmsiO3M6MDoiIjtzOjE2OiJjZ19wYXJ0X3RvX2ZpZWxkIjtzOjA6IiI7czoyNDoiY2dfYXBpZnlfd2FpdF9mb3Jfc2luZ2xlIjtzOjA6IiI7czoxMzoiY2dfcG9zdF9zdHJpcCI7czowOiIiO3M6MjI6ImNnX3Bvc3Rfc3RyaXBfYnlfd29yZHMiO3M6MDoiIjtzOjE5OiJjZ19tbF9leGFtcGxlX3N0cmlwIjtzOjA6IiI7czoyMDoiY2dfZmVlZF92aXN1YWxfc3RyaXAiO2E6MTp7aTowO3M6MDoiIjt9czoyNDoiY2dfY3VzdG9tX3N0cmlwX3NlbGVjdG9yIjthOjE6e2k6MDtzOjU6ImNsYXNzIjt9czoyMzoiY2dfZmVlZF9jdXN0b21fc3RyaXBfaWQiO2E6MTp7aTowO3M6MDoiIjt9czoxNToiY2dfYWxsb3dlZF90YWdzIjtzOjA6IiI7czoyMjoiY2dfb3JpZ2luYWxfdGltZV9yZWdleCI7czowOiIiO3M6MjI6ImNnX2N1c3RvbV9zZWxlY3Rvcl9jYXQiO3M6MjoiaWQiO3M6MjE6ImNnX2ZlZWRfY3VzdG9tX2lkX2NhdCI7czowOiIiO3M6MTM6ImNnX3BhcmVudF9jYXQiO3M6MDoiIjtzOjE0OiJjZ19jYXRfcmVwbGFjZSI7czowOiIiO3M6MTI6ImNnX21sX2Nvb2tpZSI7czowOiIiO3M6MjI6ImNnX2N1c3RvbV9zZWxlY3Rvcl90YWciO3M6MjoiaWQiO3M6MjE6ImNnX2ZlZWRfY3VzdG9tX2lkX3RhZyI7czowOiIiO3M6MTQ6ImNnX3RhZ19yZXBsYWNlIjtzOjA6IiI7czoyNToiY2dfY3VzdG9tX3NlbGVjdG9yX2F1dGhvciI7czoyOiJpZCI7czoyNDoiY2dfZmVlZF9jdXN0b21faWRfYXV0aG9yIjtzOjA6IiI7czoxNjoiY2dfZmVlZF9lbmNvZGluZyI7czowOiIiO3M6MTI6ImNnX2ZlZWRfbGF6eSI7czowOiIiO3M6MjE6ImNnX2FydGljbGVzX2RhdGVfbGFzdCI7czo1OiJZZWFycyI7czoyNToiY2dfYXJ0aWNsZXNfZGF0ZV9sYXN0X3ZhbCI7czowOiIiO3M6MTI6ImNnX2NqX2xvY2FhbGUiO3M6NToiZW5fVVMiO3M6MTk6ImNnX2NqX2xvY2FsZV9jdXN0b20iO3M6MDoiIjtzOjE0OiJjZ19jal9sb2NhdGlvbiI7czowOiIiO3M6MTA6ImNnX2NqX3NvcnQiO3M6OToicmVsZXZhbmNlIjtzOjE4OiJjZ19jal9jb250cmFjdHR5cGUiO3M6MzoiYWxsIjtzOjIwOiJjZ19jal9jb250cmFjdHBlcmlvZCI7czozOiJhbGwiO3M6MTY6ImNnX2FlX2Z1bGxfaW1nX3QiO3M6MDoiIjtzOjE3OiJjZ19hZV9jdXN0b21fdXJscyI7czowOiIiO3M6MTY6ImNnX2FlX2N1c3RvbV9jdXIiO3M6MDoiIjtzOjE3OiJjZ19hZV9jdXN0b21fbGFuZyI7czowOiIiO3M6MjA6ImNnX2FlX2N1c3RvbV9jb3VudHJ5IjtzOjA6IiI7czoxOToiY2dfYWVfY3VzdG9tX2RvbWFpbiI7czowOiIiO3M6MTA6ImNnX2NsX3BhZ2UiO3M6MDoiIjtzOjE2OiJjZ19jbF9mdWxsX2ltZ190IjtzOjA6IiI7czoxNjoiY2dfd21fcHJpY2VfZnJvbSI7czowOiIiO3M6MTQ6ImNnX3dtX3ByaWNlX3RvIjtzOjA6IiI7czoxMDoiY2dfd21fc29ydCI7czo5OiJyZWxldmFuY2UiO3M6MTQ6ImNnX3dtX3NvcnRfZGlyIjtzOjM6ImFzYyI7czo5OiJjZ193bV9jYXQiO3M6MDoiIjtzOjEwOiJjZ19ybV9wYWdlIjtzOjA6IiI7czoxOToiY2dfcGxfbWF4X2ltZ193aWR0aCI7czowOiIiO3M6MTA6ImNnX3BsX2xhbmciO3M6MDoiIjtzOjEwOiJjZ190ZV9wYWdlIjtzOjA6IiI7czoxMDoiY2dfcmRfcGFnZSI7czowOiIiO3M6MTY6ImNnX3JkX2Z1bGxfaW1nX3QiO3M6MDoiIjtzOjExOiJjZ19pdV9tZWRpYSI7czo1OiJtdXNpYyI7czoxMDoiY2dfaXVfbGFuZyI7czowOiIiO3M6MTI6ImNnX2V2X2ZpbHRlciI7czoxMToidGhlbWVmb3Jlc3QiO3M6MTA6ImNnX2V2X3RhZ3MiO3M6MDoiIjtzOjEyOiJjZ19ldl9hdXRob3IiO3M6MDoiIjtzOjk6ImNnX2V2X2NhdCI7czowOiIiO3M6MTA6ImNnX2V2X3NvcnQiO3M6MDoiIjtzOjE0OiJjZ19ldl9zb3J0X2RpciI7czowOiIiO3M6OToiY2dfZXZfYXBpIjtzOjA6IiI7czoxMjoiY2dfZmJfc291cmNlIjtzOjc6InByb2ZpbGUiO3M6MTA6ImNnX2ZiX3BhZ2UiO3M6MDoiIjtzOjEzOiJjZ19mYl9wYWdlX2lkIjtzOjA6IiI7czoxMDoiY2dfZmJfZnJvbSI7Yzo1OiJwb3N0cyI7czoxOToiY2dfZmJfdGl0bGVfZGVmYXVsdCI7czowOiIiO3M6MTc6ImNnX2ZiX3RpdGxlX2NvdW50IjtzOjA6IiI7czoxNzoiY2dfYW1fY3VzdG9tX3VybHMiO3M6MDoiIjtzOjEwOiJjZ19hbV9odG1sIjtzOjA6IiI7czo5OiJjZ19hbV9taW4iO3M6MDoiIjtzOjk6ImNnX2FtX21heCI7czowOiIiO3M6MTY6ImNnX2FtX2Z1bGxfaW1nX3QiO3M6MDoiIjtzOjEzOiJjZ19hbV9zZXNzaW9uIjtzOjA6IiI7czoxMDoiY2dfYW1fdWJpZCI7czowOiIiO3M6MTM6ImNnX3l0X2R0ZV9kYXkiO3M6MjoiMDEiO3M6MTU6ImNnX3l0X2R0ZV9tb250aCI7czoyOiIwMSI7czoxNDoiY2dfeXRfZHRlX3llYXIiO3M6MDoiIjtzOjE3OiJjZ195dF9kdGVfbWludXRlcyI7Yzo1OiIxMDA4MCI7czoxODoiY2dfdm1fdXNlcl9jaGFubmVsIjtzOjU6InVzZXJzIjtzOjEwOiJjZ192bV91c2VyIjtzOjA6IiI7czoxMToiY2dfdm1fb3JkZXIiO3M6ODoicmVsZXZhbnQiO3M6MTU6ImNnX3ZtX29yZGVyX2RpciI7czo0OiJkZXNjIjtzOjg6ImNnX3ZtX2NjIjtzOjQ6Im5vbmUiO3M6MTE6ImNnX3ZtX3dpZHRoIjtzOjA6IiI7czoxMjoiY2dfdm1faGVpZ2h0IjtzOjA6IiI7czoxOToiY2dfZ3BfcHJvbXB0X3RpdGxlcyI7czowOiIiO3M6MTI6ImNnX2dwX3Byb21wdCI7czowOiIiO3M6MTg6ImNnX2dwX3Byb21wdF9jb3VudCI7czowOiIiO3M6MTk6ImNnX3NjX3VzZXJfcGxheWxpc3QiO3M6NDoidXNlciI7czoxMDoiY2dfc2NfdXNlciI7czowOiIiO3M6MTg6ImNnX3B0X3VzZXJfY2hhbm5lbCI7czo1OiJ1c2VycyI7czoxMDoiY2dfcHRfdXNlciI7czowOiIiO3M6MTc6ImNnX3B0X3RpdGxlX2NvdW50IjtzOjA6IiI7czoxMDoiY2dfdHRfaHRtbCI7czowOiIiO3M6MTA6ImNnX3R0X3VzZXIiO3M6MDoiIjtzOjEwOiJjZ19pdF91c2VyIjtzOjA6IiI7czoxNjoiY2dfaXRfZnVsbF9pbWdfdCI7czowOiIiO3M6MTc6ImNnX2l0X3RpdGxlX2NvdW50IjtzOjA6IiI7czoxMDoiY2dfdHdfbGFuZyI7czowOiIiO3M6MTA6ImNnX2RtX3VzZXIiO3M6MDoiIjtzOjE0OiJjZ19kbV9wbGF5bGlzdCI7czowOiIiO3M6MTE6ImNnX2RtX3dpZHRoIjtzOjA6IiI7czoxMjoiY2dfZG1faGVpZ2h0IjtzOjA6IiI7czoxMzoiY2dfZG1fY2hhbm5lbCI7czowOiIiO3M6MTA6ImNnX2RtX2xhbmciO3M6MDoiIjtzOjk6ImNnX2RtX2N0ciI7czowOiIiO3M6MTQ6ImNnX3l0X3BsYXlsaXN0IjtzOjA6IiI7czoyMToiY2dfeXRfdHJlbmRpbmdfcmVnaW9uIjtzOjA6IiI7czoxMjoiY2dfeXRfYmVmb3JlIjtzOjA6IiI7czoxMzoiY2dfeXRfbGljZW5zZSI7czozOiJhbnkiO3M6MTA6ImNnX3l0X3R5cGUiO3M6MzoiYW55IjtzOjE0OiJjZ195dF9kdXJhdGlvbiI7czozOiJhbnkiO3M6MTY6ImNnX3l0X2RlZmluaXRpb24iO3M6MzoiYW55IjtzOjEwOiJjZ195dF9zYWZlIjtzOjg6Im1vZGVyYXRlIjtzOjExOiJjZ195dF93aWR0aCI7czowOiIiO3M6MTI6ImNnX3l0X2hlaWdodCI7czowOiIiO3M6OToiY2dfeXRfY3RyIjtzOjA6IiI7czoxMDoiY2dfeXRfbGFuZyI7czowOiIiO3M6MTE6ImNnX3l0X3BsYW5nIjtzOjA6IiI7czoxMDoiY2dfZWJfdXNlciI7czowOiIiO3M6MTA6ImNnX2ViX3NpdGUiO3M6NzoiRUJBWS1VUyI7czo5OiJjZ19lYl9jYXQiO3M6MToiMCI7czoxNDoiY2dfZWJheV9jdXN0b20iO3M6MDoiIjtzOjEzOiJjZ19lYl9saXN0aW5nIjtzOjM6IkFsbCI7czoxMToiY2dfZWJfb3JkZXIiO3M6OToiQmVzdE1hdGNoIjtzOjE1OiJjZ19lYl9jb25kaXRpb24iO3M6MzoiQU5ZIjtzOjE3OiJjZ19lYl9zZWxsZXJfdHlwZSI7czozOiJBTlkiO3M6MTY6ImNnX2ViX2N1cnJlbmN5XzIiO3M6MDoiIjtzOjE4OiJjZ19lYl9yZWRpcmVjdF9lbmQiO3M6MDoiIjtzOjEzOiJjZ19lYl9jb3VudHJ5IjtzOjA6IiI7czoxMjoiY2dfZWJfcG9zdGFsIjtzOjA6IiI7czoxNjoiY2dfZWJfZnVsbF9pbWdfdCI7czowOiIiO3M6MTE6ImNnX2ViX3BhcmFtIjtzOjA6IiI7czoxMzoiY2dfZWJfbWluX2JpZCI7czowOiIiO3M6MTM6ImNnX2ViX21heF9iaWQiO3M6MDoiIjtzOjE0OiJjZ19lYl9pZnJhbWVfaCI7czowOiIiO3M6OToiY2dfZWJfbWluIjtzOjA6IiI7czo5OiJjZ19lYl9tYXgiO3M6MDoiIjtzOjE0OiJjZ19lYl9jdXJyZW5jeSI7czowOiIiO3M6MTA6ImNnX2ZsX3VzZXIiO3M6MDoiIjtzOjE2OiJjZ19mbF91c2VyX2FsYnVtIjtzOjA6IiI7czoxMToiY2dfZmxfZ3JvdXAiO3M6MDoiIjtzOjExOiJjZ19mbF9vcmRlciI7czo5OiJyZWxldmFuY2UiO3M6MTA6ImNnX2NiX2xhbmciO3M6MzoiQUxMIjtzOjE1OiJjZ19kZWZhdWx0X3RhZ3MiO3M6MDoiIjtzOjE0OiJjZ19jdXN0b21fc2x1ZyI7czowOiIiO3M6MjU6ImNnX2N1c3RvbV9zbHVnX3dvcmRfbGltaXQiO3M6MDoiIjtzOjE0OiJjZ19hZGp1c3RfdGFncyI7czowOiIiO3M6MTQ6ImNnX3Bvc3RfZm9ybWF0IjtzOjA6IiI7czoxNDoiY2dfcG9zdF9wYXJlbnQiO3M6MDoiIjtzOjE1OiJjZ19vcGVuYWlfbW9kZWwiO3M6MTM6ImdwdC0zLjUtdHVyYm8iO3M6MjU6ImNnX29wZW5haV9maW5ldHVuZWRfbW9kZWwiO3M6MDoiIjtzOjIxOiJjZ19vcGVuYWlfdGVtcGVyYXR1cmUiO3M6MzoiMC43IjtzOjE1OiJjZ19vcGVuYWlfdG9wX3AiO3M6MToiMSI7czoyNzoiY2dfb3BlbmFpX2ZyZXF1ZW5jeV9wZW5hbHR5IjtzOjE6IjAiO3M6MjY6ImNnX29wZW5haV9wcmVzZW5jZV9wZW5hbHR5IjtzOjE6IjAiO3M6MTY6ImNnX21pbmltdW1fd2lkdGgiO3M6MToiMCI7czoxMjoiY2dfdGhtYl9saXN0IjtzOjA6IiI7czoyNjoiY2dfZmVhdHVyZWRfaW1nX3NpbmdsZV91cmwiO3M6MDoiIjtzOjIyOiJjZ19mZWF0dXJlZF9pbWdfdmlzdWFsIjtzOjA6IiI7czoyMToiY2dfZ2FsbGVyeV9pbWdfdmlzdWFsIjtzOjA6IiI7czoxODoiY2dfcGl4YWJheV9rZXl3b3JkIjtzOjA6IiI7czoxNToiY2dfZGFsbGUzX3Byb21wdCI7czowOiIiO3M6MjY6ImNnX29wZW5haV9kYWxsZV9pbWFnZV9zaXplIjtzOjk6IjEwMjR4MTAyNCI7czoyNzoiY2dfY2xhc3NpY19nYWxsZXJ5X3RlbXBsYXRlIjtzOjA6IiI7czoxMToiY2dfY2FtcF90YXgiO3M6ODoiY2F0ZWdvcnkiO3M6MTQ6ImNnX2tleXdvcmRfY2F0IjtzOjA6IiI7czoxMjoiY2dfcG9zdF90YWdzIjtzOjA6IiI7czoxMzoiY2dfdGFnc19saW1pdCI7czoxOiIxIjtzOjE0OiJjZ19rZXl3b3JkX3RhZyI7czowOiIiO3M6MTA6ImNnX3RhZ190YXgiO3M6MDoiIjtzOjI0OiJjZ19jYW1wX3Bvc3RfcmVnZXhfZXhhY3QiO3M6MDoiIjtzOjI2OiJjZ19jYW1wX3Bvc3RfcmVnZXhfZXhjbHVkZSI7czowOiIiO3M6MjM6ImNnX2NyaXRlcmlhX3NraXBfZmllbGRzIjthOjE6e2k6MDtzOjA6IiI7fXM6MjY6ImNnX2NyaXRlcmlhX3NraXBfY3JpdGVyaWFzIjthOjE6e2k6MDtzOjI6Ij09Ijt9czoyMzoiY2dfY3JpdGVyaWFfc2tpcF92YWx1ZXMiO2E6MTp7aTowO3M6MDoiIjt9czoyODoiY2dfY3JpdGVyaWFfc2tpcF9maWVsZHNfbXVzdCI7YToxOntpOjA7czowOiIiO31zOjMxOiJjZ19jcml0ZXJpYV9za2lwX2NyaXRlcmlhc19tdXN0IjthOjE6e2k6MDtzOjI6Ij09Ijt9czoyODoiY2dfY3JpdGVyaWFfc2tpcF92YWx1ZXNfbXVzdCI7YToxOntpOjA7czowOiIiO31zOjEzOiJjZ19taW5fbGVuZ3RoIjtzOjQ6IjUwMDAiO3M6MTM6ImNnX21heF9sZW5ndGgiO3M6MToiMCI7czoxOToiY2dfdHJhbnNsYXRlX21ldGhvZCI7czoxNjoiZ29vZ2xlVHJhbnNsYXRvciI7czoxMjoiY2dfd3BtbF9sYW5nIjtzOjI6IiAgIjtzOjEyOiJjZ19wb2x5X2xhbmciO3M6MjoiICAiO3M6MTY6ImNnX3JlZ2V4X3JlcGxhY2UiO3M6MDoiIjtzOjE5OiJjZ19rZXl3b3Jkc19yZXBsYWNlIjtzOjA6IiI7czoxNjoiY2dfY29udGVudF9saW1pdCI7Yzo1OiIyMDAwMCI7czoxNDoiY2dfdGl0bGVfbGltaXQiO3M6MToiMCI7fQ==",
+            "camp_post_execlude": "",
+            "camp_yt_user": "",
+            "camp_translate_to": "",
+            "camp_translate_from": "",
+            "camp_translate_to_2": "",
+            "camp_post_type": "post"
+        };
+    }
+
+    // ---------- FUNZIONI PER GESTIONE FEED ----------
+    function getNextId() {
+        if (!feedsData.length) return 1;
+        const maxId = Math.max(...feedsData.map(f => parseInt(f.camp_id) || 0));
+        return maxId + 1;
+    }
+
+    function createNewFeed(feedUrl, titleTmpl, contentTmpl, authorId, minChars, skipMins, skipWords) {
+        let newFeed;
+        if (baseTemplate) {
+            newFeed = JSON.parse(JSON.stringify(baseTemplate));
+        } else {
+            newFeed = getDefaultTemplateObject();
+        }
+        newFeed.camp_id = String(getNextId());
+        newFeed.camp_name = feedUrl;
+        newFeed.feeds = feedUrl;
+        newFeed.camp_post_title = titleTmpl;
+        newFeed.camp_post_content = contentTmpl;
+        newFeed.camp_post_author = String(authorId);
+
+        if (newFeed.camp_general) {
+            newFeed.camp_general = setParamVal(newFeed.camp_general, PARAM_MIN_LENGTH, minChars);
+            newFeed.camp_general = setParamVal(newFeed.camp_general, PARAM_SKIP_MINUTES, skipMins);
+            newFeed.camp_general = setParamVal(newFeed.camp_general, PARAM_SKIP_WORDS, skipWords);
+        }
+        feedsData.push(newFeed);
+    }
+
+    function addMultiFeeds(urls, titleTmpl, contentTmpl, authorId, minChars, skipMins, skipWords) {
+        let added = 0;
+        for (let url of urls) {
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                alert(`URL non valido (manca protocollo): ${url}`);
+                continue;
+            }
+            createNewFeed(url, titleTmpl, contentTmpl, authorId, minChars, skipMins, skipWords);
+            added++;
+        }
+        if (added > 0) {
+            renderTable();
+            if (!baseTemplate && feedsData.length > 0) {
+                baseTemplate = JSON.parse(JSON.stringify(feedsData[0]));
+                baseTemplate.camp_id = "0";
+                baseTemplate.camp_name = "";
+                baseTemplate.feeds = "";
+            }
+            alert(`Aggiunti ${added} feed.`);
+        } else {
+            alert("Nessun feed aggiunto.");
+        }
+    }
+
+    // Batch update generico
+    function batchUpdateParam(paramName, newValue, successMessage) {
+        if (!feedsData.length) { alert("Nessun feed presente."); return false; }
+        let updated = 0;
+        for (let feed of feedsData) {
+            if (feed.camp_general) {
+                const newGeneral = setParamVal(feed.camp_general, paramName, newValue);
+                if (newGeneral !== feed.camp_general) {
+                    feed.camp_general = newGeneral;
+                    updated++;
+                }
+            }
+        }
+        renderTable();
+        alert(`✅ Aggiornati ${updated} feed su ${feedsData.length}. ${successMessage}`);
+        return true;
+    }
+
+    // Render tabella
+    function renderTable() {
+        const tbody = document.getElementById('feeds-table-body');
+        const countSpan = document.getElementById('feeds-count');
+        countSpan.innerText = feedsData.length;
+
+        if (feedsData.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-12 text-slate-400"><i class="fas fa-cloud-upload-alt text-3xl mb-2 block"></i>Nessun feed caricato. Usa "Importa JSON" o "Aggiungi multipli".</td></tr>`;
+            return;
+        }
+
+        let html = '';
+        for (const feed of feedsData) {
+            const feedUrl = feed.camp_name || feed.feeds || 'URL non disponibile';
+            const titleTmpl = feed.camp_post_title || '#Finsubito news - [original_title]';
+            const minVal = getParamVal(feed.camp_general, PARAM_MIN_LENGTH) || '0';
+            const skipVal = getParamVal(feed.camp_general, PARAM_SKIP_MINUTES) || '0';
+            const skipWords = getParamVal(feed.camp_general, PARAM_SKIP_WORDS) || '';
+            const shortUrl = feedUrl.length > 55 ? feedUrl.substring(0, 52) + '...' : feedUrl;
+            const shortWords = skipWords.length > 20 ? skipWords.substring(0, 17) + '...' : skipWords;
+
+            html += `<tr class="hover:bg-slate-50 transition">
+                <td class="px-4 py-3 whitespace-nowrap text-sm font-mono text-slate-600">${escapeHtml(String(feed.camp_id))}</td>
+                <td class="px-4 py-3 text-sm text-slate-700 break-all max-w-md"><a href="${escapeHtml(feedUrl)}" target="_blank" class="text-blue-600 hover:underline">${escapeHtml(shortUrl)}</a></td>
+                <td class="px-4 py-3 text-sm text-slate-600 max-w-xs truncate">${escapeHtml(titleTmpl)}</td>
+                <td class="px-4 py-3 text-center text-sm font-mono"><span class="bg-amber-50 px-3 py-1 rounded-full border border-amber-100">${escapeHtml(minVal)}</span></td>
+                <td class="px-4 py-3 text-center text-sm font-mono"><span class="bg-cyan-50 px-3 py-1 rounded-full border border-cyan-100">${escapeHtml(skipVal)}</span></td>
+                <td class="px-4 py-3 text-center text-sm font-mono"><span class="bg-rose-50 px-3 py-1 rounded-full border border-rose-100" title="${escapeHtml(skipWords)}">${escapeHtml(shortWords)}</span></td>
+             </tr>`;
+        }
+        tbody.innerHTML = html;
+    }
+
+    function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
+
+    // ---------- MODAL MULTIPLI ----------
+    const multiModal = document.getElementById('multi-modal');
+    const multiUrls = document.getElementById('multi-urls');
+    const multiTitle = document.getElementById('multi-title');
+    const multiContent = document.getElementById('multi-content');
+    const multiAuthor = document.getElementById('multi-author');
+    const multiMinChars = document.getElementById('multi-min-chars');
+    const multiSkipMins = document.getElementById('multi-skip-mins');
+    const multiSkipWords = document.getElementById('multi-skip-words');
+
+    function openMultiModal() {
+        if (feedsData.length > 10080) {
+            const first = feedsData[10080];
+            multiTitle.value = first.camp_post_title || '#Finsubito news - [original_title]';
+            multiContent.value = first.camp_post_content || '';
+            multiAuthor.value = first.camp_post_author || '1';
+            multiMinChars.value = getParamVal(first.camp_general, PARAM_MIN_LENGTH) || '5000';
+            multiSkipMins.value = getParamVal(first.camp_general, PARAM_SKIP_MINUTES) || '0';
+            multiSkipWords.value = getParamVal(first.camp_general, PARAM_SKIP_WORDS) || '';
+        } else {
+            multiTitle.value = '#Finsubito news - [original_title]';
+            multiContent.value = `[ad_1]\n<br>[matched_content]\n<br>[ad_2]\n<strong>#Adessonews seleziona nella rete articoli di particolare interesse.</strong>\n<strong>Se vuoi leggere l'articolo completo clicca sul seguente link</strong>\n [author]\n<br><a href="[source_link]">Source link </a>`;
+            multiAuthor.value = '1';
+            multiMinChars.value = '5000';
+            multiSkipMins.value = '10080';
+            multiSkipWords.value = '';
+        }
+        multiUrls.value = '';
+        multiModal.classList.remove('hidden');
+    }
+
+    function closeMultiModal() { multiModal.classList.add('hidden'); }
+
+    function confirmMulti() {
+        const urlsText = multiUrls.value;
+        const lines = urlsText.split(/\r?\n/).filter(l => l.trim().length > 0);
+        if (lines.length === 0) { alert("Inserisci almeno un URL valido."); return; }
+
+        const titleTmpl = multiTitle.value.trim() || '#Finsubito news - [original_title]';
+        const contentTmpl = multiContent.value.trim() || '';
+        const author = multiAuthor.value.trim() || '1';
+        const minChars = parseInt(multiMinChars.value) || 0;
+        const skipMins = parseInt(multiSkipMins.value) || 0;
+        const skipWords = multiSkipWords.value.trim() || '';
+
+        addMultiFeeds(lines, titleTmpl, contentTmpl, author, minChars, skipMins, skipWords);
+        closeMultiModal();
+    }
+
+    // ---------- MODAL BATCH MIN CARATTERI ----------
+    const batchModal = document.getElementById('batch-modal');
+    const batchMinInput = document.getElementById('batch-min-value');
+
+    function openBatchModal() {
+        if (feedsData.length === 0) { alert("Non ci sono feed da modificare."); return; }
+        document.getElementById('batch-count-display').innerText = feedsData.length;
+        batchMinInput.value = '10080';
+        batchModal.classList.remove('hidden');
+    }
+
+    function closeBatchModal() { batchModal.classList.add('hidden'); }
+
+    function applyBatch() {
+        const newMin = parseInt(batchMinInput.value);
+        if (isNaN(newMin)) { alert("Inserisci un numero valido."); return; }
+        if (!confirm(`Impostare il minimo caratteri a ${newMin} per TUTTI i feed?`)) return;
+        batchUpdateParam(PARAM_MIN_LENGTH, newMin, `Minimo caratteri = ${newMin}.`);
+        closeBatchModal();
+    }
+
+    // ---------- MODAL BATCH SKIP MINUTI ----------
+    const batchSkipModal = document.getElementById('batch-skip-modal');
+    const batchSkipInput = document.getElementById('batch-skip-value');
+
+    function openBatchSkipModal() {
+        if (feedsData.length === 0) { alert("Non ci sono feed da modificare."); return; }
+        batchSkipInput.value = '';
+        batchSkipModal.classList.remove('hidden');
+    }
+
+    function closeBatchSkipModal() { batchSkipModal.classList.add('hidden'); }
+
+    function applyBatchSkip() {
+        const newSkip = parseInt(batchSkipInput.value);
+        if (isNaN(newSkip)) { alert("Inserisci un numero valido."); return; }
+        if (!confirm(`Impostare i minuti di skip a ${newSkip} per TUTTI i feed?`)) return;
+        batchUpdateParam(PARAM_SKIP_MINUTES, newSkip, `Skip Minuti = ${newSkip}.`);
+        closeBatchSkipModal();
+    }
+
+    // ---------- MODAL BATCH SKIP WORDS ----------
+    const batchSkipWordsModal = document.getElementById('batch-skip-words-modal');
+    const batchSkipWordsInput = document.getElementById('batch-skip-words-value');
+
+    function openBatchSkipWordsModal() {
+        if (feedsData.length === 0) { alert("Non ci sono feed da modificare."); return; }
+        batchSkipWordsInput.value = '';
+        batchSkipWordsModal.classList.remove('hidden');
+    }
+
+    function closeBatchSkipWordsModal() { batchSkipWordsModal.classList.add('hidden'); }
+
+    function applyBatchSkipWords() {
+        const newSkipWords = batchSkipWordsInput.value.trim();
+        if (!confirm(`Impostare le skip words a "${newSkipWords}" per TUTTI i feed?`)) return;
+        batchUpdateParam(PARAM_SKIP_WORDS, newSkipWords, `Skip Words = "${newSkipWords}".`);
+        closeBatchSkipWordsModal();
+    }
+
+    // ---------- IMPORT / EXPORT ----------
+    document.getElementById('import-file').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+            try {
+                const imported = JSON.parse(ev.target.result);
+                if (Array.isArray(imported)) {
+                    feedsData = imported;
+                    renderTable();
+                    if (feedsData.length > 0) {
+                        baseTemplate = JSON.parse(JSON.stringify(feedsData[0]));
+                        baseTemplate.camp_id = "0";
+                        baseTemplate.camp_name = "";
+                        baseTemplate.feeds = "";
+                    } else {
+                        baseTemplate = null;
+                    }
+                    alert(`Importati ${feedsData.length} feed.`);
+                } else {
+                    alert('Formato non valido: deve essere un array.');
+                }
+            } catch (err) { alert('Errore JSON: ' + err.message); }
+            e.target.value = '';
+        };
+        reader.readAsText(file);
+    });
+
+    document.getElementById('export-btn').addEventListener('click', () => {
+        if (!feedsData.length) { alert('Nessun feed da esportare.'); return; }
+        const dataStr = JSON.stringify(feedsData, null, 2);
+        const blob = new Blob([dataStr], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `wp-automatic-bulk-export-${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+
+    // Eventi UI
+    document.getElementById('add-multi-btn').addEventListener('click', openMultiModal);
+    document.getElementById('close-multi-modal').addEventListener('click', closeMultiModal);
+    document.getElementById('cancel-multi-modal').addEventListener('click', closeMultiModal);
+    document.getElementById('confirm-multi').addEventListener('click', confirmMulti);
+
+    document.getElementById('batch-min-btn').addEventListener('click', openBatchModal);
+    document.getElementById('close-batch-modal').addEventListener('click', closeBatchModal);
+    document.getElementById('cancel-batch-modal').addEventListener('click', closeBatchModal);
+    document.getElementById('confirm-batch').addEventListener('click', applyBatch);
+
+    document.getElementById('batch-skip-btn').addEventListener('click', openBatchSkipModal);
+    document.getElementById('close-batch-skip-modal').addEventListener('click', closeBatchSkipModal);
+    document.getElementById('cancel-batch-skip-modal').addEventListener('click', closeBatchSkipModal);
+    document.getElementById('confirm-batch-skip').addEventListener('click', applyBatchSkip);
+
+    document.getElementById('batch-skip-words-btn').addEventListener('click', openBatchSkipWordsModal);
+    document.getElementById('close-batch-skip-words-modal').addEventListener('click', closeBatchSkipWordsModal);
+    document.getElementById('cancel-batch-skip-words-modal').addEventListener('click', closeBatchSkipWordsModal);
+    document.getElementById('confirm-batch-skip-words').addEventListener('click', applyBatchSkipWords);
+
+    // Inizializzazione
+    feedsData = [];
+    baseTemplate = null;
+    renderTable();
+</script>
+</body>
+</html>
