@@ -1,0 +1,3 @@
+## 2024-03-24 - Form Label Association
+**Learning:** Found inputs in `src/App.tsx` that lacked `id` attributes and their corresponding `<label>` tags lacked `htmlFor` attributes. Even if visually placed next to each other, screen readers require explicit programmatic association between a label and its input, or else they may announce "edit text" without context. Additionally, icon-only buttons using only `title` attributes may not be reliably announced by all screen readers; `aria-label` provides a robust accessible name.
+**Action:** When creating forms, always link `<label>` and `<input>` using `htmlFor` and `id` respectively. For icon-only buttons, always include an explicit `aria-label`.
