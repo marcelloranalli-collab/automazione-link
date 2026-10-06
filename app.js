@@ -20,18 +20,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const scriptURL = 'https://script.google.com/macros/s/AKfycbw8y7flj_41SkqU06LaFemQmofIXX6eWCpiTAC88XZTX_zMpqdUvznyQlIw31gKG37vkw/exec';
 
             if (scriptURL && scriptURL.trim() !== '') {
-                // Se l'URL è stato inserito, invia i dati a Google Sheets
-                // Convert formData to URLSearchParams to send as form-urlencoded (works best with Google Apps Script)
-                const urlEncodedData = new URLSearchParams(formData).toString();
+                // Invia i dati a Google Sheets utilizzando FormData nativo,
+                // che Google Apps Script interpreta correttamente.
+                // Questo evita errori di preflight CORS rispetto a 'application/json'
+                // o problemi di redirect con 'x-www-form-urlencoded'.
 
                 fetch(scriptURL, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: urlEncodedData
+                    body: formData
                 })
                 .then(response => {
+                    // Apps Script often returns a 200 with JSON, or redirects.
                     if(response.ok) {
                         window.location.href = 'thankyou.html';
                     } else {
@@ -42,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.error('Error!', error.message);
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalText;
-                    alert("Si è verificato un errore durante l'invio. Riprova più tardi.");
+                    alert("Si è verificato un errore durante l'invio. Verifica che lo script Google sia stato pubblicato con accesso 'Chiunque'. Riprova più tardi.");
                 });
             } else {
                 // Se non c'è l'URL, simula solo il caricamento (per i test)
