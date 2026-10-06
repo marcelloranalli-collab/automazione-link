@@ -1,0 +1,3 @@
+## 2023-10-27 - Icon-only Buttons and Accessibility in Italian
+**Learning:** Found several icon-only buttons (Logout, Play, Edit, Delete) missing ARIA labels in a React application using Italian localization. Adding `aria-label` matching the existing `title` attributes significantly improves accessibility without visual disruption. Also discovered that inputs generated for admin actions need `aria-label` when visual labels are missing.
+**Action:** Next time working on this repo, continue to use Italian for accessibility labels (`aria-label`) to match the primary language of the application UI. Ensure all new icon-only buttons include descriptive ARIA labels.
