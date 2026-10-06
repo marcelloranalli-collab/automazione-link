@@ -1,13 +1,212 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Google AI Studio App</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>#finsubito - Aderisci Ora</title>
+    <!-- Include the compiled Tailwind CSS file -->
+    <link rel="stylesheet" href="styles.css">
 
+    <!-- Inline styles for custom animations and elements not captured by generic Tailwind classes without config -->
+    <style>
+        body {
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+        }
+        .mix-blend-screen { mix-blend-mode: screen; }
+        .blur-\[120px\] { filter: blur(120px); }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: .7; transform: scale(1.05); }
+        }
+        .animate-pulse { animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+
+        /* Fade in and slide animations to replicate Framer Motion */
+        @keyframes fadeInLeft {
+            from { opacity: 0; transform: translateX(-50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .animate-fade-in-left { animation: fadeInLeft 0.8s ease-out forwards; }
+        .animate-fade-in-right { animation: fadeInRight 0.8s ease-out forwards; animation-delay: 0.2s; opacity: 0; }
+        .animate-fade-in-up-1 { animation: fadeInUp 0.5s ease-out forwards; animation-delay: 0.3s; opacity: 0; }
+        .animate-fade-in-up-2 { animation: fadeInUp 0.5s ease-out forwards; animation-delay: 0.4s; opacity: 0; }
+        .animate-fade-in-up-3 { animation: fadeInUp 0.5s ease-out forwards; animation-delay: 0.5s; opacity: 0; }
+        .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; animation-delay: 0.7s; opacity: 0; }
+
+        .icon {
+            width: 24px;
+            height: 24px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-950 flex items-center justify-center p-4 md:p-8 relative overflow-hidden font-sans text-slate-100">
+
+    <!-- Animated gradient backgrounds -->
+    <div class="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-indigo-600/20 blur-[120px] rounded-full mix-blend-screen animate-pulse"></div>
+    <div class="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-blue-600/20 blur-[120px] rounded-full mix-blend-screen animate-pulse" style="animation-delay: 2s;"></div>
+
+    <div class="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center relative z-10">
+
+        <!-- Left Side: Slogans and Info -->
+        <div class="flex flex-col gap-8 lg:pr-8 animate-fade-in-left">
+            <div class="mb-2">
+                <a href="https://www.finsubito.org" target="_blank" rel="noopener noreferrer" class="inline-block group">
+                    <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400 group-hover:scale-105 transition-transform duration-300">
+                        #finsubito
+                    </h1>
+                </a>
+                <p class="text-sm font-bold text-blue-300 mt-4 tracking-widest uppercase flex items-center gap-2">
+                    <span class="w-8 h-px bg-blue-300"></span>
+                    ADERISCI ORA
+                </p>
+            </div>
+
+            <h2 class="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-white">
+                Il valore dei tuoi clienti merita di tornare a te. 🚀
+            </h2>
+
+            <p class="text-lg text-slate-300 leading-relaxed">
+                Lascia i tuoi dati: un consulente dedicato ti contatterà per attivare l'accordo e mostrarti quanto può valere il tuo portafoglio clienti.
+            </p>
+
+            <div class="flex flex-col gap-6 text-slate-300 mt-2">
+                <div class="flex items-start gap-4 hover:bg-slate-900/50 p-4 rounded-2xl transition-colors duration-300 border border-transparent hover:border-slate-800 animate-fade-in-up-1">
+                    <div class="mt-1 bg-blue-500/20 p-2.5 rounded-xl">
+                        <svg class="icon text-blue-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-white text-xl mb-1">Zero Costi Anticipati 💸</h3>
+                        <p class="text-slate-400">Nessuna spesa nascosta, valuta la fattibilità gratuitamente senza alcun impegno.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-4 hover:bg-slate-900/50 p-4 rounded-2xl transition-colors duration-300 border border-transparent hover:border-slate-800 animate-fade-in-up-2">
+                    <div class="mt-1 bg-green-500/20 p-2.5 rounded-xl">
+                        <svg class="icon text-green-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"></path><path d="m9 12 2 2 4-4"></path></svg>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-white text-xl mb-1">Massima Sicurezza 🔒</h3>
+                        <p class="text-slate-400">I tuoi dati sono al sicuro e la nostra consulenza è altamente confidenziale.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-4 hover:bg-slate-900/50 p-4 rounded-2xl transition-colors duration-300 border border-transparent hover:border-slate-800 animate-fade-in-up-3">
+                    <div class="mt-1 bg-purple-500/20 p-2.5 rounded-xl">
+                        <svg class="icon text-purple-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-white text-xl mb-1">Veloce e Semplice ⚡</h3>
+                        <p class="text-slate-400">Compila il modulo in 1 minuto, al resto pensiamo noi. Il tuo tempo è prezioso!</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-blue-900/40 to-slate-900 border border-blue-800/50 p-6 rounded-2xl backdrop-blur-md shadow-xl mt-4 relative overflow-hidden animate-fade-in">
+                <div class="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
+                <p class="text-slate-200">
+                    Hai bisogno di maggiori informazioni o assistenza rapida? <br/>
+                    Contattaci direttamente su <a href="http://info.finsubito.org" target="_blank" rel="noopener noreferrer" class="text-blue-400 font-bold hover:text-blue-300 transition-colors border-b border-blue-400/30 hover:border-blue-400">info.finsubito.org</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Right Side: Form Card -->
+        <div class="lg:pl-8 animate-fade-in-right">
+            <div class="bg-white rounded-[2rem] p-8 md:p-10 shadow-2xl relative overflow-hidden">
+                <div class="absolute -top-24 -right-24 w-48 h-48 bg-blue-50 rounded-full blur-2xl opacity-60 pointer-events-none"></div>
+                <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-indigo-50 rounded-full blur-2xl opacity-60 pointer-events-none"></div>
+
+                <form id="contactForm" class="space-y-6 relative z-10">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-800 uppercase tracking-widest mb-2" for="nome">
+                            Nome e Cognome
+                        </label>
+                        <input
+                            type="text"
+                            id="nome"
+                            name="nome"
+                            required
+                            class="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm placeholder:text-slate-400"
+                            placeholder="Inserisci il tuo nome completo"
+                        />
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-800 uppercase tracking-widest mb-2" for="email">
+                            Email
+                        </label>
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            required
+                            class="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm placeholder:text-slate-400"
+                            placeholder="La tua email principale"
+                        />
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-800 uppercase tracking-widest mb-2" for="telefono">
+                            Telefono
+                        </label>
+                        <input
+                            type="tel"
+                            id="telefono"
+                            name="telefono"
+                            required
+                            class="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm placeholder:text-slate-400"
+                            placeholder="Il tuo numero di cellulare"
+                        />
+                    </div>
+
+                    <div class="pt-6">
+                        <button
+                            type="submit"
+                            class="w-full bg-[#1e66f5] hover:bg-[#1a5bde] text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-500/30 transition-all flex items-center justify-center gap-2 group active:scale-[0.98]"
+                        >
+                            RICHIEDI ORA
+                            <svg class="icon group-hover:translate-x-1 transition-transform" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                        </button>
+                    </div>
+
+                    <p class="text-center text-[11px] text-slate-500 mt-6 px-4 leading-relaxed">
+                        I tuoi dati saranno usati solo per ricontattarti in merito ai servizi #finsubito. Cliccando su "Richiedi Ora" accetti la nostra Privacy Policy.
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const formData = {
+                nome: document.getElementById('nome').value,
+                email: document.getElementById('email').value,
+                telefono: document.getElementById('telefono').value
+            };
+
+            console.log('Form submitted:', formData);
+            alert('Grazie per averci contattato! Ti risponderemo al più presto.');
+
+            // Reset form
+            this.reset();
+        });
+    </script>
+</body>
+</html>
