@@ -1,13 +1,96 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Google AI Studio App</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Richiesta Informazioni | #Finsubito</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header with logo -->
+        <header>
+            <a href="https://www.finsubito.org" class="logo">
+                #Finsubito
+            </a>
+        </header>
 
+        <main class="content-wrapper">
+            <!-- Left Side: Slogans and Info -->
+            <div class="left-side">
+                <h2>Il valore dei tuoi progetti merita di prendere vita. 🚀</h2>
+                <p class="subtitle">Lascia i tuoi dati: un nostro consulente dedicato ti contatterà per mostrarti tutte le opportunità a te riservate. 💼</p>
+
+                <div class="slogans">
+                    <div class="slogan-box">
+                        <h3>Zero Costi Anticipati! 💸</h3>
+                        <p>I nostri servizi di consulenza non prevedono alcun costo iniziale. Paghi solo a risultato ottenuto! 🏆</p>
+                    </div>
+                    <div class="slogan-box">
+                        <h3>Assistenza Dedicata 🤝</h3>
+                        <p>Scrivici a <a href="mailto:info.finsubito.org">info.finsubito.org</a> per qualsiasi dubbio, siamo sempre al tuo fianco.</p>
+                    </div>
+                    <div class="slogan-box highlight">
+                        <p>✨ <strong>Entra nel mondo #Finsubito!</strong> Compila il form e inizia a far crescere il tuo business. 📈</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Form -->
+            <div class="right-side">
+                <form id="contact-form" class="form-card">
+                    <div class="form-group">
+                        <label for="nome-cognome">NOME E COGNOME</label>
+                        <input type="text" id="nome-cognome" name="nome_cognome" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">E-MAIL</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cellulare">CELLULARE</label>
+                        <input type="tel" id="cellulare" name="cellulare" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="motivo">MOTIVO DELLA RICHIESTA</label>
+                        <textarea id="motivo" name="motivo" rows="4" required></textarea>
+                    </div>
+
+                    <button type="submit" id="submit-btn" class="btn-primary">
+                        INVIA RICHIESTA <span class="arrow">→</span>
+                    </button>
+
+                    <p class="privacy-notice">I tuoi dati saranno usati solo per ricontattarti in merito alla tua richiesta.</p>
+                </form>
+            </div>
+        </main>
+
+        <!-- RSS Feed Section -->
+        <section id="news-section">
+            <h3>Ultime Notizie 📰</h3>
+            <div id="rss-feed-container">
+                <p>Caricamento notizie in corso...</p>
+            </div>
+        </section>
+
+        <!-- Footer & Counter -->
+        <footer>
+            <div id="histats_counter">
+                <!-- Histats placeholder -->
+                <script type="text/javascript">var _Hasync= _Hasync|| [];
+                _Hasync.push(['Histats.start', '1,1234567,4,0,0,0,00010000']);
+                _Hasync.push(['Histats.fasi', '1']);
+                _Hasync.push(['Histats.track_hits', '']);
+                (function() {
+                var hs = document.createElement('script'); hs.type = 'text/javascript'; hs.async = true;
+                hs.src = ('//s10.histats.com/js15_as.js');
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(hs);
+                })();</script>
+            </div>
+            <p>&copy; 2024 #Finsubito. Tutti i diritti riservati.</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
