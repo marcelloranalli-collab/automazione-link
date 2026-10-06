@@ -15,28 +15,43 @@ document.addEventListener('DOMContentLoaded', () => {
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
 
-            // TODO: In a real environment, replace this URL with your Google Apps Script Web App URL
-            // const scriptURL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+            // ⚠️ INSERISCI QUI IL TUO URL DI GOOGLE APPS SCRIPT ⚠️
+            // Sostituisci la stringa vuota con l'URL generato da Google (deve iniziare con https://script.google.com/macros/s/...)
+            const scriptURL = '';
 
-            /* Example of real fetch:
-            fetch(scriptURL, { method: 'POST', body: formData })
+            if (scriptURL && scriptURL.trim() !== '') {
+                // Se l'URL è stato inserito, invia i dati a Google Sheets
+                // Convert formData to URLSearchParams to send as form-urlencoded (works best with Google Apps Script)
+                const urlEncodedData = new URLSearchParams(formData).toString();
+
+                fetch(scriptURL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: urlEncodedData
+                })
                 .then(response => {
-                    window.location.href = 'thankyou.html';
+                    if(response.ok) {
+                        window.location.href = 'thankyou.html';
+                    } else {
+                        throw new Error("Errore nella risposta del server");
+                    }
                 })
                 .catch(error => {
                     console.error('Error!', error.message);
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalText;
-                    alert("Si è verificato un errore. Riprova più tardi.");
+                    alert("Si è verificato un errore durante l'invio. Riprova più tardi.");
                 });
-            */
-
-            // Simulate network request for demonstration
-            setTimeout(() => {
-                console.log('Form data submitted:', data);
-                // Redirect to thank you page
-                window.location.href = 'thankyou.html';
-            }, 1500);
+            } else {
+                // Se non c'è l'URL, simula solo il caricamento (per i test)
+                console.warn("ATTENZIONE: URL di Google Apps Script mancante. Simulo l'invio per il test.");
+                setTimeout(() => {
+                    console.log('Form data che verrebbero inviati:', data);
+                    window.location.href = 'thankyou.html';
+                }, 1500);
+            }
         });
     }
 
