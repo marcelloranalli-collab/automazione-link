@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // ⚠️ INSERISCI QUI IL TUO URL DI GOOGLE APPS SCRIPT ⚠️
             // Sostituisci la stringa vuota con l'URL generato da Google (deve iniziare con https://script.google.com/macros/s/...)
-            const scriptURL = '';
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbw8y7flj_41SkqU06LaFemQmofIXX6eWCpiTAC88XZTX_zMpqdUvznyQlIw31gKG37vkw/exec';
 
             if (scriptURL && scriptURL.trim() !== '') {
                 // Se l'URL è stato inserito, invia i dati a Google Sheets
