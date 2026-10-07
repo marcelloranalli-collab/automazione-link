@@ -829,7 +829,8 @@ export default function App() {
                 </h2>
                 <button
                   onClick={() => setShowAdminPanel(false)}
-                  className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors"
+                  className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus:outline-none"
+                  aria-label="Chiudi pannello"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -841,6 +842,7 @@ export default function App() {
                   value={newAuthorizedEmail}
                   onChange={(e) => setNewAuthorizedEmail(e.target.value)}
                   placeholder="Email utente..."
+                  aria-label="Email utente"
                   className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                   required
                 />
@@ -898,7 +900,8 @@ export default function App() {
                 </h2>
                 <button 
                   onClick={closeModal}
-                  className="p-2 hover:bg-slate-800 rounded-full transition-colors"
+                  className="p-2 hover:bg-slate-800 rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus:outline-none"
+                  aria-label="Chiudi finestra"
                 >
                   <X className="w-6 h-6" />
                 </button>
