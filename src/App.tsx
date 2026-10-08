@@ -581,7 +581,7 @@ export default function App() {
               <button
                 onClick={() => setShowAdminPanel(true)}
                 className="flex items-center gap-2 px-3 py-1.5 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded-xl transition-colors border border-indigo-500/30"
-                title="Pannello Admin"
+                title="Pannello Admin" aria-label="Apri pannello admin"
               >
                 <Users className="w-4 h-4" />
                 <span className="text-sm font-medium hidden md:block">Gestione Utenti</span>
@@ -594,7 +594,7 @@ export default function App() {
             <button
               onClick={logOut}
               className="p-2 text-slate-400 hover:text-red-400 transition-colors"
-              title="Logout"
+              title="Logout" aria-label="Disconnetti"
             >
               <LogOut className="w-5 h-5" />
             </button>
@@ -773,7 +773,7 @@ export default function App() {
                     <button
                       onClick={() => handleRunNow(link)}
                       className="p-2 text-slate-400 hover:text-green-400 hover:bg-green-400/10 rounded-xl transition-all border border-transparent hover:border-green-400/20"
-                      title="Avvia subito"
+                      title="Avvia subito" aria-label="Avvia subito programmazione"
                     >
                       <Play className="w-5 h-5" />
                     </button>
@@ -793,14 +793,14 @@ export default function App() {
                     <button
                       onClick={() => openEditModal(link)}
                       className="p-2 text-slate-400 hover:text-indigo-400 hover:bg-indigo-400/10 rounded-xl transition-all border border-transparent hover:border-indigo-400/20"
-                      title="Modifica"
+                      title="Modifica" aria-label="Modifica programmazione"
                     >
                       <Pencil className="w-5 h-5" />
                     </button>
                     <button
                       onClick={() => setLinkToDelete(link.id)}
                       className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all border border-transparent hover:border-red-400/20"
-                      title="Elimina"
+                      title="Elimina" aria-label="Elimina programmazione"
                     >
                       <Trash2 className="w-5 h-5" />
                     </button>
@@ -829,14 +829,16 @@ export default function App() {
                 </h2>
                 <button
                   onClick={() => setShowAdminPanel(false)}
-                  className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors"
+                  aria-label="Chiudi pannello admin" className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <form onSubmit={handleAddAuthorizedUser} className="flex gap-2 mb-6">
+                <label htmlFor="admin-email" className="sr-only">Email utente</label>
                 <input
+                  id="admin-email"
                   type="email"
                   value={newAuthorizedEmail}
                   onChange={(e) => setNewAuthorizedEmail(e.target.value)}
@@ -862,7 +864,7 @@ export default function App() {
                       <button
                         onClick={() => handleRemoveAuthorizedUser(u.id)}
                         className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
-                        title="Rimuovi accesso"
+                        title="Rimuovi accesso" aria-label="Rimuovi accesso utente"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -898,7 +900,7 @@ export default function App() {
                 </h2>
                 <button 
                   onClick={closeModal}
-                  className="p-2 hover:bg-slate-800 rounded-full transition-colors"
+                  aria-label="Chiudi modal" className="p-2 hover:bg-slate-800 rounded-full transition-colors"
                 >
                   <X className="w-6 h-6" />
                 </button>
@@ -906,11 +908,12 @@ export default function App() {
 
               <form onSubmit={handleSaveLink} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-2">URL del sito</label>
+                  <label htmlFor="link-url" className="block text-sm font-medium text-slate-400 mb-2">URL del sito</label>
                   <div className="relative">
                     <ExternalLink className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                     <input
                       required
+                      id="link-url"
                       type="url"
                       placeholder="https://example.com"
                       value={newLink.url || ''}
@@ -922,11 +925,12 @@ export default function App() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-400 mb-2">Orario Apertura</label>
+                    <label htmlFor="link-open-time" className="block text-sm font-medium text-slate-400 mb-2">Orario Apertura</label>
                     <div className="relative">
                       <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                       <input
                         required
+                        id="link-open-time"
                         type="time"
                         value={newLink.openTime || '09:00'}
                         onChange={e => setNewLink({...newLink, openTime: e.target.value})}
@@ -935,10 +939,11 @@ export default function App() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-400 mb-2">Orario Fine (Opzionale)</label>
+                    <label htmlFor="link-end-time" className="block text-sm font-medium text-slate-400 mb-2">Orario Fine (Opzionale)</label>
                     <div className="relative">
                       <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                       <input
+                        id="link-end-time"
                         type="time"
                         value={newLink.endTime || ''}
                         onChange={e => setNewLink({...newLink, endTime: e.target.value})}
@@ -949,8 +954,9 @@ export default function App() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-2">Data Scadenza (Opzionale)</label>
+                  <label htmlFor="link-end-date" className="block text-sm font-medium text-slate-400 mb-2">Data Scadenza (Opzionale)</label>
                   <input
+                    id="link-end-date"
                     type="date"
                     value={newLink.endDate || ''}
                     onChange={e => setNewLink({...newLink, endDate: e.target.value})}
@@ -961,11 +967,12 @@ export default function App() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-400 mb-2">Durata Apertura (min)</label>
+                    <label htmlFor="link-duration" className="block text-sm font-medium text-slate-400 mb-2">Durata Apertura (min)</label>
                     <div className="relative">
                       <Timer className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                       <input
                         required
+                        id="link-duration"
                         type="number"
                         min="1"
                         max="1440"
@@ -979,10 +986,11 @@ export default function App() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-2">Ripeti ogni (minuti)</label>
+                  <label htmlFor="link-repeat" className="block text-sm font-medium text-slate-400 mb-2">Ripeti ogni (minuti)</label>
                   <div className="relative">
                     <Settings className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                     <input
+                      id="link-repeat"
                       type="number"
                       min="0"
                       max="1440"
