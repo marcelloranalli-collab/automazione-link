@@ -1,0 +1,3 @@
+## 2024-05-14 - Icon-only buttons lacking ARIA labels
+**Learning:** In the `src/App.tsx` file of this React application, there was a prevalent pattern of using icon-only `<button>` elements (e.g., for actions like Edit, Delete, Start, Toggle) without semantic `aria-label` attributes. While some had a `title` attribute, this is often insufficient for robust screen reader support compared to a dedicated `aria-label`.
+**Action:** When adding new icon-only interactive elements in this app (and generally), always ensure a descriptive `aria-label` is included alongside any tooltips to provide clear context for assistive technologies.
