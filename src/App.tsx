@@ -595,6 +595,7 @@ export default function App() {
               onClick={logOut}
               className="p-2 text-slate-400 hover:text-red-400 transition-colors"
               title="Logout"
+              aria-label="Logout"
             >
               <LogOut className="w-5 h-5" />
             </button>
@@ -774,6 +775,7 @@ export default function App() {
                       onClick={() => handleRunNow(link)}
                       className="p-2 text-slate-400 hover:text-green-400 hover:bg-green-400/10 rounded-xl transition-all border border-transparent hover:border-green-400/20"
                       title="Avvia subito"
+                      aria-label="Avvia subito"
                     >
                       <Play className="w-5 h-5" />
                     </button>
@@ -794,6 +796,7 @@ export default function App() {
                       onClick={() => openEditModal(link)}
                       className="p-2 text-slate-400 hover:text-indigo-400 hover:bg-indigo-400/10 rounded-xl transition-all border border-transparent hover:border-indigo-400/20"
                       title="Modifica"
+                      aria-label="Modifica"
                     >
                       <Pencil className="w-5 h-5" />
                     </button>
@@ -801,6 +804,7 @@ export default function App() {
                       onClick={() => setLinkToDelete(link.id)}
                       className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all border border-transparent hover:border-red-400/20"
                       title="Elimina"
+                      aria-label="Elimina"
                     >
                       <Trash2 className="w-5 h-5" />
                     </button>
@@ -830,6 +834,7 @@ export default function App() {
                 <button
                   onClick={() => setShowAdminPanel(false)}
                   className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors"
+                  aria-label="Chiudi pannello admin"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -863,6 +868,7 @@ export default function App() {
                         onClick={() => handleRemoveAuthorizedUser(u.id)}
                         className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
                         title="Rimuovi accesso"
+                        aria-label="Rimuovi accesso"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -899,6 +905,7 @@ export default function App() {
                 <button 
                   onClick={closeModal}
                   className="p-2 hover:bg-slate-800 rounded-full transition-colors"
+                  aria-label="Chiudi finestra"
                 >
                   <X className="w-6 h-6" />
                 </button>
