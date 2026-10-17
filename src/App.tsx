@@ -704,7 +704,14 @@ export default function App() {
                 <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Plus className="w-8 h-8 text-slate-600" />
                 </div>
-                <p className="text-slate-500">Non hai ancora aggiunto alcun link programmato.</p>
+                <p className="text-slate-500 mb-6">Non hai ancora aggiunto alcun link programmato.</p>
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-semibold transition-all active:scale-95 shadow-lg shadow-indigo-500/20"
+                >
+                  <Plus className="w-5 h-5" />
+                  Crea il tuo primo Link
+                </button>
               </motion.div>
             ) : (
               links.map((link) => (
