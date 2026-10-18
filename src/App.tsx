@@ -513,7 +513,7 @@ export default function App() {
             </a>
             <button
               onClick={logOut}
-              className="w-full flex items-center justify-center gap-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-3 px-6 rounded-xl transition-all active:scale-95 border border-slate-700"
+              className="w-full flex items-center justify-center gap-3 bg-slate-800 hover:bg-slate-700 focus-visible:ring-2 focus-visible:ring-indigo-500 focus:outline-none text-slate-300 font-semibold py-3 px-6 rounded-xl transition-all active:scale-95 border border-slate-700"
             >
               <LogOut className="w-5 h-5" />
               Disconnetti
@@ -544,7 +544,7 @@ export default function App() {
           <div className="flex flex-col gap-4">
             <button
               onClick={signIn}
-              className="w-full flex items-center justify-center gap-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 px-6 rounded-xl transition-all active:scale-95 shadow-lg shadow-indigo-500/20"
+              className="w-full flex items-center justify-center gap-3 bg-indigo-600 hover:bg-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500 focus:outline-none text-white font-semibold py-3 px-6 rounded-xl transition-all active:scale-95 shadow-lg shadow-indigo-500/20"
             >
               <LogIn className="w-5 h-5" />
               Accedi con Google
@@ -580,7 +580,7 @@ export default function App() {
             {user.email === 'marcello.ranalli@gmail.com' && (
               <button
                 onClick={() => setShowAdminPanel(true)}
-                className="flex items-center gap-2 px-3 py-1.5 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded-xl transition-colors border border-indigo-500/30"
+                className="flex items-center gap-2 px-3 py-1.5 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 focus-visible:ring-2 focus-visible:ring-indigo-500 focus:outline-none rounded-xl transition-colors border border-indigo-500/30"
                 title="Pannello Admin"
               >
                 <Users className="w-4 h-4" />
@@ -593,7 +593,8 @@ export default function App() {
             </div>
             <button
               onClick={logOut}
-              className="p-2 text-slate-400 hover:text-red-400 transition-colors"
+              aria-label="Logout"
+              className="p-2 text-slate-400 hover:text-red-400 focus-visible:ring-2 focus-visible:ring-red-400 focus:outline-none transition-colors rounded-xl"
               title="Logout"
             >
               <LogOut className="w-5 h-5" />
@@ -632,7 +633,7 @@ export default function App() {
             <button
               onClick={() => setIsSchedulerRunning(!isSchedulerRunning)}
               className={cn(
-                "w-full flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-bold transition-all active:scale-95",
+                "w-full flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-bold transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-indigo-500 focus:outline-none",
                 isSchedulerRunning 
                   ? "bg-slate-800 hover:bg-slate-700 text-slate-200" 
                   : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
@@ -686,7 +687,7 @@ export default function App() {
           <h2 className="text-2xl font-bold">Programmazioni</h2>
           <button
             onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl font-semibold transition-all active:scale-95"
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500 focus:outline-none text-white px-4 py-2 rounded-xl font-semibold transition-all active:scale-95"
           >
             <Plus className="w-5 h-5" />
             Nuovo Link
@@ -772,15 +773,17 @@ export default function App() {
                   <div className="flex items-center gap-2 sm:gap-3 ml-auto sm:ml-0">
                     <button
                       onClick={() => handleRunNow(link)}
-                      className="p-2 text-slate-400 hover:text-green-400 hover:bg-green-400/10 rounded-xl transition-all border border-transparent hover:border-green-400/20"
+                      aria-label="Avvia subito"
+                      className="p-2 text-slate-400 hover:text-green-400 hover:bg-green-400/10 focus-visible:ring-2 focus-visible:ring-green-400 focus:outline-none rounded-xl transition-all border border-transparent hover:border-green-400/20"
                       title="Avvia subito"
                     >
                       <Play className="w-5 h-5" />
                     </button>
                     <button
                       onClick={() => toggleLinkStatus(link.id, link.isActive)}
+                      aria-label={link.isActive ? "Disattiva programmazione" : "Attiva programmazione"}
                       className={cn(
-                        "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all border",
+                        "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all border focus-visible:ring-2 focus-visible:ring-indigo-500 focus:outline-none",
                         link.isActive 
                           ? "bg-indigo-500/10 text-indigo-400 border-indigo-500/30 hover:bg-indigo-500/20" 
                           : "bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700"
@@ -792,14 +795,16 @@ export default function App() {
                     </button>
                     <button
                       onClick={() => openEditModal(link)}
-                      className="p-2 text-slate-400 hover:text-indigo-400 hover:bg-indigo-400/10 rounded-xl transition-all border border-transparent hover:border-indigo-400/20"
+                      aria-label="Modifica"
+                      className="p-2 text-slate-400 hover:text-indigo-400 hover:bg-indigo-400/10 focus-visible:ring-2 focus-visible:ring-indigo-400 focus:outline-none rounded-xl transition-all border border-transparent hover:border-indigo-400/20"
                       title="Modifica"
                     >
                       <Pencil className="w-5 h-5" />
                     </button>
                     <button
                       onClick={() => setLinkToDelete(link.id)}
-                      className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all border border-transparent hover:border-red-400/20"
+                      aria-label="Elimina"
+                      className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-400/10 focus-visible:ring-2 focus-visible:ring-red-400 focus:outline-none rounded-xl transition-all border border-transparent hover:border-red-400/20"
                       title="Elimina"
                     >
                       <Trash2 className="w-5 h-5" />
@@ -829,7 +834,8 @@ export default function App() {
                 </h2>
                 <button
                   onClick={() => setShowAdminPanel(false)}
-                  className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors"
+                  aria-label="Chiudi Pannello Admin"
+                  className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-slate-500 focus:outline-none rounded-xl transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -846,7 +852,7 @@ export default function App() {
                 />
                 <button
                   type="submit"
-                  className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+                  className="bg-indigo-600 hover:bg-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500 focus:outline-none text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
                 >
                   Aggiungi
                 </button>
@@ -861,7 +867,8 @@ export default function App() {
                       <span className="text-sm text-slate-300">{u.email}</span>
                       <button
                         onClick={() => handleRemoveAuthorizedUser(u.id)}
-                        className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
+                        aria-label="Rimuovi accesso"
+                        className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-400/10 focus-visible:ring-2 focus-visible:ring-red-400 focus:outline-none rounded-lg transition-colors"
                         title="Rimuovi accesso"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -898,7 +905,8 @@ export default function App() {
                 </h2>
                 <button 
                   onClick={closeModal}
-                  className="p-2 hover:bg-slate-800 rounded-full transition-colors"
+                  aria-label="Chiudi"
+                  className="p-2 hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-slate-500 focus:outline-none rounded-full transition-colors"
                 >
                   <X className="w-6 h-6" />
                 </button>
@@ -998,7 +1006,7 @@ export default function App() {
                 <div className="pt-4">
                   <button
                     type="submit"
-                    className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-indigo-500/20 transition-all active:scale-95"
+                    className="w-full bg-indigo-600 hover:bg-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500 focus:outline-none text-white font-bold py-4 rounded-xl shadow-lg shadow-indigo-500/20 transition-all active:scale-95"
                   >
                     Salva Programmazione
                   </button>
@@ -1034,13 +1042,13 @@ export default function App() {
               <div className="flex gap-3">
                 <button
                   onClick={() => setLinkToDelete(null)}
-                  className="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-semibold py-3 rounded-xl transition-all"
+                  className="flex-1 bg-slate-800 hover:bg-slate-700 focus-visible:ring-2 focus-visible:ring-slate-500 focus:outline-none text-white font-semibold py-3 rounded-xl transition-all"
                 >
                   Annulla
                 </button>
                 <button
                   onClick={() => deleteLink(linkToDelete)}
-                  className="flex-1 bg-red-600 hover:bg-red-500 text-white font-semibold py-3 rounded-xl transition-all shadow-lg shadow-red-500/20"
+                  className="flex-1 bg-red-600 hover:bg-red-500 focus-visible:ring-2 focus-visible:ring-red-500 focus:outline-none text-white font-semibold py-3 rounded-xl transition-all shadow-lg shadow-red-500/20"
                 >
                   Elimina
                 </button>

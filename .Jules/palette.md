@@ -1,0 +1,3 @@
+## 2024-03-24 - Missing accessibility attributes in the main app
+**Learning:** In Link Automator, the majority of buttons, including critical control buttons (like Delete, Run, Edit, Status Toggle, and Modals close buttons), are purely icon-based without any screen reader fallback `aria-label`s, rendering them essentially invisible or deeply confusing to screen readers. Furthermore, there was no consistent visual focus indication (`focus-visible`) for keyboard navigators across the UI.
+**Action:** Always verify keyboard focus states and screen reader labels when using purely icon-based interactions, especially inside dynamically rendered lists and modal popups. Standardize the use of Tailwind's `focus-visible:ring-2 focus:outline-none` across interactive components.
